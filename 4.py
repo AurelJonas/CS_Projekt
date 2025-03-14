@@ -51,7 +51,7 @@ st.write("Look how easily we can build and tun a web application")
 
 # a button to get started
 # and show the results 
-if st.button('Roll the dice!'):
+if st.button('Roll the dice!!'):
     st.header('Results')
     results = roll_the_dice(6000)
     st.write(results)
