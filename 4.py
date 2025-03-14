@@ -33,7 +33,7 @@ def roll_the_dice(rolls, sides=9, print_results=False):
         value_len = len(str(max(frequencies.values())))
         for key, value in sorted(frequencies.items()):
             print(f'{key:>{sides_len}}: {value:>{value_len}}')
-    
+    Hilfe
     # finally we return the dictionary sorted by keys
     return dict(sorted(frequencies.items()))
 
