@@ -14,7 +14,7 @@ def roll_the_dice(rolls, sides=9, print_results=False):
     for roll in range(rolls):
         face = random.randrange(1, sides+1)
         
-        # increment appropriate face counter
+        # increment appropriate face counterK
         # this time as a dictionary
         #
         # fist we check, whether the the resulting face 
@@ -38,7 +38,7 @@ def roll_the_dice(rolls, sides=9, print_results=False):
     return dict(sorted(frequencies.items()))
 
 # and now we only need a litte bit of Python code to 
-# bring it to the web
+# bring it to the web 
 #
 # we run the code from the command line by entering
 #   streamlit run <path_to_file>/streamlit_demo.py  
