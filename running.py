@@ -14,6 +14,8 @@ from streamlit_option_menu import option_menu
 import random
 import smtplib
 import time
+import requests
+import webbrowser
 
 # Einrichten der Verbindng zur firestore Datenbank
 
@@ -244,10 +246,48 @@ else:
     elif selected == 'Trainings':
         st.title('Sieh dir deine Statistiken an!')
         
+    # Einrichten der Strava API
+
+    #Streamlit mit Strava verbinden
+    client_id = 155219
+    Client_secret = 5db3d4c311d0cc549e2c2df313bc0657014170aa
+    Redirect_URL = ??
+    st.title("Strava API mit Streamlit")
+    # Auth-Link anzeigen
+    auth_url = (
+    f"https://www.strava.com/oauth/authorize?client_id={CLIENT_ID}"
+    f"&redirect_uri={REDIRECT_URI}&response_type=code&scope=read,activity:read")
+    if st.button("Mit Strava verbinden"):
+        webbrowser.open_new_tab(auth_url)
+
+    # Code aus Redirect (manuell eingeben)
+    code = st.text_input("Füge hier den 'code' aus der URL nach Login ein")
+
+    if code:
+        token_url = "https://www.strava.com/oauth/token"
+        payload = {
+            "client_id": CLIENT_ID,
+            "client_secret": CLIENT_SECRET,
+            "code": code,
+            "grant_type": "authorization_code"}
         
-        
-        
-        
+    response = requests.post(token_url, data=payload)
+    if response.status_code == 200:
+        token_data = response.json()
+        access_token = token_data["access_token"]
+        st.success("Token erfolgreich erhalten!")
+    else:
+        st.error("Fehler beim Abrufen des Tokens")
+    if code:
+    headers = {"Authorization": f"Bearer {access_token}"}
+    activities_url = "https://www.strava.com/api/v3/athlete/activities"
+    params = {"per_page": 5, "page": 1}
+    r = requests.get(activities_url, headers=headers, params=params)
+    activities = r.json()
+
+    st.subheader("Letzte Aktivitäten:")
+    for act in activities:
+        st.write(f"- {act['name']} ({act['distance']/1000:.2f} km)")
         
     elif selected == 'Teams':
           
