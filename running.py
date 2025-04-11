@@ -15,7 +15,8 @@ import random
 import smtplib
 import time
 import requests
-import webbrowser
+import pandas as pd
+import datetime
 
 # Einrichten der Verbindng zur firestore Datenbank
 
@@ -246,49 +247,100 @@ else:
     elif selected == 'Trainings':
         st.title('Sieh dir deine Statistiken an!')
         
-    # Einrichten der Strava API
-
-    #Streamlit mit Strava verbinden
-    client_id = 155219
-    Client_secret = 5db3d4c311d0cc549e2c2df313bc0657014170aa
-    Redirect_URL = ??
-    st.title("Strava API mit Streamlit")
-    # Auth-Link anzeigen
-    auth_url = (
-    f"https://www.strava.com/oauth/authorize?client_id={CLIENT_ID}"
-    f"&redirect_uri={REDIRECT_URI}&response_type=code&scope=read,activity:read")
-    if st.button("Mit Strava verbinden"):
-        webbrowser.open_new_tab(auth_url)
-
-    # Code aus Redirect (manuell eingeben)
-    code = st.text_input("Füge hier den 'code' aus der URL nach Login ein")
-
-    if code:
-        token_url = "https://www.strava.com/oauth/token"
-        payload = {
-            "client_id": CLIENT_ID,
-            "client_secret": CLIENT_SECRET,
-            "code": code,
-            "grant_type": "authorization_code"}
+        #Strava API verbinden
+        CLIENT_ID = "DEIN_CLIENT_ID"
+        CLIENT_SECRET = "DEIN_CLIENT_SECRET"
+        REDIRECT_URI = "http://localhost:8501"  
         
-    response = requests.post(token_url, data=payload)
-    if response.status_code == 200:
-        token_data = response.json()
-        access_token = token_data["access_token"]
-        st.success("Token erfolgreich erhalten!")
-    else:
-        st.error("Fehler beim Abrufen des Tokens")
-    if code:
-    headers = {"Authorization": f"Bearer {access_token}"}
-    activities_url = "https://www.strava.com/api/v3/athlete/activities"
-    params = {"per_page": 5, "page": 1}
-    r = requests.get(activities_url, headers=headers, params=params)
-    activities = r.json()
-
-    st.subheader("Letzte Aktivitäten:")
-    for act in activities:
-        st.write(f"- {act['name']} ({act['distance']/1000:.2f} km)")
+        st.set_page_config(page_title="🏃‍♂️ Strava Lauf-Dashboard", layout="wide")
+        st.title("🏃‍♂️ Strava Lauf-Dashboard")
         
+        #Authentifizierung
+        auth_url = (
+            f"https://www.strava.com/oauth/authorize?client_id={CLIENT_ID}"
+            f"&redirect_uri={REDIRECT_URI}&response_type=code&scope=activity:read_all"
+        )
+        
+        st.markdown(f"[🔗 Mit Strava verbinden]({auth_url})")
+        
+        code = st.text_input("🔑 Code hier einfügen (aus URL nach Login)")
+        
+        if code:
+            with st.spinner("Authentifiziere bei Strava..."):
+                token_response = requests.post(
+                    "https://www.strava.com/oauth/token",
+                    data={
+                        "client_id": CLIENT_ID,
+                        "client_secret": CLIENT_SECRET,
+                        "code": code,
+                        "grant_type": "authorization_code",
+                    },
+                )
+                if token_response.status_code == 200:
+                    tokens = token_response.json()
+                    access_token = tokens["access_token"]
+                    st.success("✅ Zugriff erhalten!")
+                else:
+                    st.error("❌ Authentifizierung fehlgeschlagen")
+                    st.stop()
+        
+            #Daten von Strava importieren
+            with st.spinner("Lade Aktivitäten..."):
+                headers = {"Authorization": f"Bearer {access_token}"}
+                url = "https://www.strava.com/api/v3/athlete/activities"
+                params = {"per_page": 100, "page": 1}
+                r = requests.get(url, headers=headers, params=params)
+                activities = r.json()
+        
+                if isinstance(activities, dict) and activities.get("message"):
+                    st.error("Fehler beim Laden der Aktivitäten.")
+                    st.stop()
+        
+                df = pd.DataFrame(activities)
+                df = df[df["type"] == "Run"]
+        
+                if df.empty:
+                    st.warning("Keine Laufaktivitäten gefunden.")
+                    st.stop()
+        
+                #Pace berechnen und formatieren
+                df["distance_km"] = df["distance"] / 1000
+                df["moving_time_min"] = df["moving_time"] / 60
+                df["pace_min_per_km"] = df["moving_time"] / 60 / df["distance_km"]  # Minuten pro km
+                df["pace_str"] = df["pace_min_per_km"].apply(
+                    lambda x: f"{int(x)}:{int((x - int(x)) * 60):02d} min/km"
+                )
+                df["date"] = pd.to_datetime(df["start_date_local"]).dt.date
+        
+                #kumulierte Werte
+                total_distance = df["distance_km"].sum()
+                total_time_min = df["moving_time_min"].sum()
+                best_pace = df["pace_min_per_km"].min()
+                best_pace_str = f"{int(best_pace)}:{int((best_pace - int(best_pace)) * 60):02d} min/km"
+        
+            # Bestzeiten
+            st.header("🏅 Lauf-Statistiken")
+        
+            col1, col2, col3 = st.columns(3)
+            col1.metric("📏 Gesamtdistanz", f"{total_distance:.2f} km")
+            col2.metric("🕒 Gesamtzeit", f"{total_time_min:.0f} Min")
+            col3.metric("⚡ Schnellste Pace", best_pace_str)
+        
+        
+            # Letzte Läufe
+            st.header("📋 Letzte Läufe")
+        
+            st.dataframe(df[["date", "name", "distance_km", "moving_time_min", "pace_str"]].rename(columns={
+                "date": "Datum",
+                "name": "Titel",
+                "distance_km": "Distanz (km)",
+                "moving_time_min": "Dauer (min)",
+                "pace_str": "Pace",
+            }))
+
+    elif selected == 'Dein Rang':
+        st.title('Sieh dir deinen Rang an!')
+    
     elif selected == 'Teams':
           
         choice_2 = st.selectbox("Option",["Team erstellen","Team beitreten"])
