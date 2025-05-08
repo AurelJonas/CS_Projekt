@@ -46,15 +46,12 @@ def wetter_abfrage ():
         col3.markdown (weather)
         col4.markdown (temperature)
         col5.markdown (wind)
-    else: 
+    else:
         st.error ('Keine Wetterdaten zu diesem Standort gefunden')
 
 #Der folgende Code erstellt einen Rundkurs
-#erstellt mithilfe von ChatGPT und 
+#erstellt mithilfe von ChatGPT 
 def route_erstellen(lat, lon, distancem):
-    if lat is not None and lon is not None:
-        #Durch diesen Befehl wird die Map in Streamlit sichtbar
-
         #mit den anschliessenden Befehlen wird das Strassennetzwerk des jeweilig eingegeben Orts heruntergeladen
         b= ox.graph_from_point ((lat, lon), dist= distancem*0.5, network_type='walk') #dadurch wird sichergestellt, dass nur Wege, welche für Fussgänger resp. in unserem Fall Jogger vorgeschlagen resp. verwendet werden. Quelle von Codezeile: https://geoffboeing.com/2016/11/osmnx-python-street-networks/
         
