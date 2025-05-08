@@ -79,7 +79,7 @@ def route_erstellen():
         mapapi= 'https://api.openrouteservice.org/optimization'
         response= requests.get(mapapi)
         print (response.json())
-        m= folium.Map(location=(float(lat), float(lon)), width=400, height=400) #https://python-visualization.github.io/folium/latest/getting_started.html
+        m= folium.Map(location=(float(lat), float(lon)),zoom_start=15, width=400, height=400) #https://python-visualization.github.io/folium/latest/getting_started.html
         folium.Marker (location=[float(lat), float(lon)], icon=folium.Icon(color='red')).add_to(m) #Damit wird am eingegebenen Ort ein Marker gesetzt für bessere Sichtbarkeit des Standortes, erstellt mithilfe von: #https://python-visualization.github.io/folium/latest/getting_started.html
         
         #Durch diesen Befehl wird die Map in Streamlit sichtbar
@@ -89,11 +89,10 @@ def route_erstellen():
         ox.plot_graph(b) #https://geoffboeing.com/2016/11/osmnx-python-street-networks/
         startpunkt= ox.distance.nearest_nodes(b, lon, lat)#Damit wird der vom eingegebenen Startpunkt nächst entfernteste Knoten gesucht https://www.geeksforgeeks.org/find-the-nearest-node-to-a-point-using-osmnx-distance-module/
         d=nx.single_source_dijkstra_path_length(b,startpunkt,cutoff=distancem*0.5, weight= 'length') #Diese Codezeile sammelt alle vorhandenen Knotenpunkte, inerhalb der zulässigen Distanz, erstellt mithilfe von: https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.shortest_paths.weighted.single_source_dijkstra_path_length.html
-        
         valid_nodes = list(d.keys()) #Erstellt aus den zuvor geladenen Knotenpunkten eine Liste, durch welche anschliessend durchiteriert werden kann. 
         anzahl_versuche=0
         max_versuche= 100 #Eingabe einer Anzahl an maximalen Versuchen, um zu verhindern, dass die anschliessende while-Schleife, sofern keine Route gefunden werden würde, unendlich durchlaufen würde.
-        route_ok=False 
+        route_ok=False
         while anzahl_versuche < max_versuche and not route_ok:
             midpoint1 = random.choice(valid_nodes)#Damit wird ein zufälliger Mittelpunkt gewählt
             midpoint2= random.choice(valid_nodes)#Damit wird ein zweiter zufälliger Mittelpunkt gewählt (relevant um einen Rundkurs zu erhalten)
@@ -145,14 +144,15 @@ def route_erstellen():
 def gpx_erstellen (routenkoordinaten):
     gpx = gpxpy.gpx.GPX()
     gpx.name = 'Ihre Route'
-    
 
     track = gpxpy.gpx.GPXTrack()
-    gpx.tracks.append(track)    
+    gpx.tracks.append(track) 
+
     segment = gpxpy.gpx.GPXTrackSegment()
     track.segments.append(segment)
+
     for lat, lon in routenkoordinaten:
-        if not (45.8 <= lat <= 47.8) or not (5.9 <= lon <= 10.5): 
+        if not (45.8 <= lat <= 47.8) or not (5.9 <= lon <= 10.5): #UNBEDINGT NOCH ANPASSEN; SONST GEHT ES FÜR DE UND AT NICHT
             st.error ('Keine gültigen Koordinantenpunkte')
             return None
         else: 
