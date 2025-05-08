@@ -32,7 +32,7 @@ def zeige_karte(koordinaten=None):
 
 #Der folgende Code ruft basierend auf dem eingegebene Standort die im API gespeicherten Wetterinformationen ab.
 #Wetter Informationen: gebaut mit: https://www.youtube.com/watch?v=X1Y3HQy5Xfo&t=1113s und https://www.youtube.com/watch?v=vXpKTGCk5h
-def wetter_abfrage ():
+def wetter_abfrage (lat,lon):
     if lat is not None and lon is not None:
         apikeyweather= '04471e45c09580cdd116430309ef988b'
         weatherapi= (f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={apikeyweather}&units=metric")
