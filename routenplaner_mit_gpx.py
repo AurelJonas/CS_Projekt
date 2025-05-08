@@ -51,7 +51,7 @@ def wetter_abfrage ():
 
 #Der folgende Code erstellt einen Rundkurs
 #erstellt mithilfe von ChatGPT und 
-def route_erstellen():
+def route_erstellen(lat, lon, distancem):
     if lat is not None and lon is not None:
         #Durch diesen Befehl wird die Map in Streamlit sichtbar
 
