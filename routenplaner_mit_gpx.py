@@ -153,7 +153,7 @@ def gpx_erstellen (routenkoordinaten):
     track.segments.append(segment)
     for lat, lon in routenkoordinaten:
         if not (45.8 <= lat <= 47.8) or not (5.9 <= lon <= 10.5): 
-            st.error ('machen sachen')
+            st.error ('Keine gültigen Koordinantenpunkte')
             return None
         else: 
             point = gpxpy.gpx.GPXTrackPoint(lat, lon)  # Erstelle einen Punkt
