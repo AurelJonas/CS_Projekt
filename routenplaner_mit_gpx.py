@@ -85,7 +85,7 @@ def route_erstellen():
         #Durch diesen Befehl wird die Map in Streamlit sichtbar
 
         #mit den anschliessenden Befehlen wird das Strassennetzwerk des jeweilig eingegeben Orts heruntergeladen
-        b= ox.graph_from_point ((lat, lon), dist= distancem, network_type='walk') #dadurch wird sichergestellt, dass nur Wege, welche für Fussgänger resp. in unserem Fall Jogger vorgeschlagen resp. verwendet werden. Quelle von Codezeile: https://geoffboeing.com/2016/11/osmnx-python-street-networks/
+        b= ox.graph_from_point ((lat, lon), dist= distancem*0.5, network_type='walk') #dadurch wird sichergestellt, dass nur Wege, welche für Fussgänger resp. in unserem Fall Jogger vorgeschlagen resp. verwendet werden. Quelle von Codezeile: https://geoffboeing.com/2016/11/osmnx-python-street-networks/
         ox.plot_graph(b) #https://geoffboeing.com/2016/11/osmnx-python-street-networks/
         startpunkt= ox.distance.nearest_nodes(b, lon, lat)#Damit wird der vom eingegebenen Startpunkt nächst entfernteste Knoten gesucht https://www.geeksforgeeks.org/find-the-nearest-node-to-a-point-using-osmnx-distance-module/
         d=nx.single_source_dijkstra_path_length(b,startpunkt,cutoff=distancem*0.5, weight= 'length') #Diese Codezeile sammelt alle vorhandenen Knotenpunkte, inerhalb der zulässigen Distanz, erstellt mithilfe von: https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.shortest_paths.weighted.single_source_dijkstra_path_length.html
