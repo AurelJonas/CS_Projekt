@@ -14,9 +14,8 @@ from streamlit_option_menu import option_menu
 import random
 import smtplib
 import time
-import requests
 import pandas as pd
-import datetime
+import requests
 
 # Einrichten der Verbindng zur firestore Datenbank
 
@@ -25,8 +24,8 @@ if not firebase_admin._apps:
     config = {
         "type": "service_account",
         "project_id": "strideup-c82ba",
-        "private_key_id": "fa9f7f78d1eddc506e19623bb2d2560db4784473",
-        "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDYquqgxvf+UWYg\nWvkea3tmrkpgv1pj2dHkFvXuP4Ka/WD7XGXhaeuPTP3K86pnn7FZED/3LrXyXADN\n/m+JgzvosVnY6biFUsMQvjg9cSPn9TcMxGHyy8aN2rODDi8q79UXKvAohY/8weBA\ndSQUZCC0XLZskLtVkAwa6PbyfzEMNpuZVAAN9Tr+1PdlGYsa6c317njLE5p7+3h6\nT7GBM2+aFCoZWgnQQnhWy2kLPr+E0fUgGbR7/8WB4Sub2mwvBL4jCN5ty6sWGSwV\ngn/jYu6QjHoH40g5ZrsNAFm5AT9rO1+sO8NYnpF2CV0BOqRHacUDbE2f9dfQqK/L\nA3qY4hBjAgMBAAECggEANlHfYfCQMw/YQUtdgn1i4jLXDdtbf4YYA42oGZONnGri\n2hHnrvQ9rN8aD7w4ICOetFwJFWD+F6VuRDbCYuDmb6erBWFPNAm0QunVsr2/SUOm\nigpgHh1tiZnngHdZZvPa4iSPMjGOEEnQ/YgAxCX4Nw+5Yo2EkeZ7ynFWnCQ8OTmv\neGPrBTWGYAgUendMTMt120evG700pUeOoo10TmlL1ncJCYqeTYCuEmIMrsd+TAWW\nbcJnX7RHCf9Wt3tCHT3kFPoyckOTAAjsaC08cv05rd1rpmN5hfGDQfR6UgZVC1Tf\nfPb9L69lGdsQr/meC10AEet5mPxDdk3zkTqoi2VlRQKBgQDxC/BebBlcoxpIZmjG\nNYM+VzY+piI09gzy/jWZoQEQlrNuvvcfHMzT7ktlU/zRcC38sIa886R8oGumd1nH\nf/mtn0ZaiTDVz69rstbuqFIHoLl/MZkhlY8jV/193rjOnYnMZD7PWA4bh3HJ4Zy1\nha3cqM2qZa0eDPyNssEsc3TNDQKBgQDmG9CY0cDjn61+ibanjljFCPLh+U/XXUc/\nXJydm5HSqk30/DS44ysMTsI7V4bHwG2eH82YZwriUt+bNTCecZOz8YuiEtUp1olX\nqlrpVCf5f/nYifkZ4XCxqke2uT/UyGXBF1phhExsOKUbHqVrPV3m6/rYKfsgWtyh\nXw/1oYVXLwKBgQCT2lXjJP1dhDIP7LkhsxtAtu/v96mNwMrqlaE9DbQAf9+p83rT\nW7AL4uPeUGkH8n5Su9i5t9zSEPhXEGhCZa45oDPgPrx0ucKJFhaeJyLByQVfDoY2\nQm2dKVC0z1OecKVgeLDKL+HfYvIZ+chM06V0bxpQBbPtddvH8rho0pz3VQKBgQDJ\n73Ty93hICbQujNovVvtOBplnd+v6OtCwqSyEH6cr8eqx6La33hvEFEXd3+TW3WcV\nUiGR8jOaBFJZGaeOFGwjiQEZ/V719WDX/xcDFqhyCz4OKp7heHb2Y1HF5/I9YJPz\njPPzCjAq9Nbn4tAWOWdzpHmhQ84vSa2/K/aMf+/NXwKBgC8DbNi/xdWImN+P9b+q\n6veIeNRZCpTKVb8ANYxOR2B6pQVdeGuZ5KZtpWpi39qGTfryjVPp4uGhwMVOnf8I\nQRSNci+JmewxUfy/gxcembpXcaYViWV3p+81BLqjsJCv9Uuojfn3GjDItwvBgB5z\nKY+UFKFvMCAnYR3SoMB/Y0KP\n-----END PRIVATE KEY-----\n",
+        "private_key_id": "be68e3a2aa95f1bfa8d2bc6a386af18500bff09a",
+        "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDKVNCiWLaQD9Us\nwghTMyd4zcJfXXSielgotikGmP8dx4SBrQU2BMwt7u6quvwK64IL3s6NoYdzkFlO\noPMehpvH3OKu5TWEpiLtb5tXFlMZavDcp/Vf2XlipQgMl7goF/AfkEUBovIwVIt2\nCkW9BWcJKZdOf+uCC4WX1+erP4wu5wO7k40FUZ1WRwwv4uZz/4mQ9DRE+jzZyZS9\n/OsdfOTUNGMhIhnsN72d27MJKzaNwI2PxvOT9Q9NrIjMfWevFRD49xZlEzfRyH4r\ntVx2Szm/h+nLYUOa31VnpnpY0JyAGqKnCUidaI5VAY0eqXxD3UK7SECkh5le2F3v\naoK/ZpDHAgMBAAECggEAXjjsJcZJUkJFREAhr1khlxS+4Tk8wRNXbbIS3eMu3vfU\nYa0owZSvXu6nT3OfPxiYaZ27M+KWmP8OT9sNDNijwAnBuK+94gWaO1cfkIkxbqNK\nAn/m+VlluUXgPzkCRg2Lwa8mK5Jt1YrxnSlAe7uB1Zb8Qs64ZkmmT2V4mduQlSAk\nQxEJ1IDEI9lJHK+AVbMbBgmuGDWQmHmuF3pGgUeNIiwuczRw0x5GWVZmXFO/eBEC\namOoWCuS9c/mKDxy5/WAPvQzRkIVWV7elot9Cx73JHa7akU8miw1/eZiy/xCm/eh\nQUbXUZkmYMoCjdqhJWa+B5zrJm4twa2G7KiCSzvfbQKBgQDzD2ocCQRGxaZ5O64X\ndYod1h9CZhtyLuaFqH64j8z4wO3wWUM2gL3jr9BH7u0xZpDlW7i+EZ8U2ft7mAxn\nF/jGF7TDIezko/al622DMNANFE6GrGGnERVTk7aVh/DXULxdirvX0Ez6+OeX4d5h\nKbtL5dMWGpE3TuWnogweNqDIuwKBgQDVGlHsT5py1PHQG4MKMgMm/yapDfn1RkHN\nPYr/ccZ/2bSFGNmf5THPf5NhDChjlEkwxUCnKSEaXHMNJR6ki2Fs4rTbvavf9N30\nCY5iInTm9dZSH2Q19g9O3gVE6SyEJWntcpCQwHz1DVNgLI6EzeCozPx0jn0+uo0F\nxxjbHmOtZQKBgQDCuV6xByg96qrsBTv731a/gIOalmL2n0xfWBXtlocH4si8/UYz\nrAB1IK0kc+3i3eDHXywqWcOw2NH4ul91WGcdjHBsxAkdQ56eXnZl2/1R/SrMCd5S\nEgWb54MnWLlCRpQh/Ltwsph5mF8x9upJvT0oGP97fd1JChRCsDg1HF7DcQKBgHIY\nyn4czNPowaOr50hBKMDrYban/gnd2QNbjR1hvGbdmDKe8H4Ux8uSQcV3LfTLAzjy\nk8AsXEXx88O4+SQeYEZdR3pTnj+lqmSr7SkLy82RGHQVzKC7osyWQPn5YlVKduGk\nMlTeSsklnlti39epJz0Zq514YQSB+1l5lQxUxAelAoGBAN65Bmmdp0nRvTs/Yl5I\nb1tTeZ2la5aSxgRuny5fPOZQ0Ey2rADXyRItlhXo5wJG0iC8if+FfcYJceP9I/Q1\n2Kr1vrMLcx2jb4axActBRqjRrg6x0KUCmlAaXxUfISZ80dwvhATZa02dxOIpXhgP\nS97qB2dbeySjpDTFo9DodkR0\n-----END PRIVATE KEY-----\n",
         "client_email": "firebase-adminsdk-fbsvc@strideup-c82ba.iam.gserviceaccount.com",
         "client_id": "103696280889436896486",
         "auth_uri": "https://accounts.google.com/o/oauth2/auth",
@@ -49,7 +48,8 @@ if "user" not in st.session_state:
     st.session_state.user = ""
 if 'code' not in st.session_state:
     st.session_state.code = ""
-
+if 'access_token' not in st.session_state:
+    st.session_state.token = ""
 
 if not st.session_state.logged_in:
     
@@ -76,7 +76,8 @@ if not st.session_state.logged_in:
                 'name': name,
                 'last_name': last_name,
                 'user_e_mail': user_e_mail,
-                'strava_id':strava_id
+                'client_id':client_id,
+                'client_secret': client_secret
                 })
             return True
 
@@ -132,9 +133,10 @@ if not st.session_state.logged_in:
         name = st.text_input("Name")
         last_name = st.text_input("Nachname")
         user_e_mail = st.text_input("E-Mail")
-        strava_id = st.text_input("Strava Identifikationsnummer")
+        client_id = st.text_input("Strava Identifikationsnummer")
+        client_secret =st.text_input("Strava Kundenschlüssel")
         if st.button("Registrieren"):
-            result = user_reg(username, password, name, last_name, user_e_mail,strava_id)
+            result = user_reg(username, password, name, last_name, user_e_mail,client_id)
             if result == False:
                st.error('Benutzername existiert bereits')
             elif result == True:
@@ -159,8 +161,6 @@ if not st.session_state.logged_in:
                 st.session_state.user = user_data['username']
                 st.rerun()
     
-    
-    
     elif choice == "Passwort zurücksetzen":
         username = st.text_input("Benutzername")
         code = st.text_input("Bitte Code aus ihrer Mail eingeben.")
@@ -171,7 +171,7 @@ if not st.session_state.logged_in:
         if col1.button("Code anfordern"):
             result = request_new_pw(username)
             if result == False:
-                st.error("User nicht gefunden. Bitte überprüfen Sie Ihre Eingaben oder rufen Sie uns an unter 031 331 88 67")
+                st.error("User nicht gefunden. Bitte überprüfen Sie Ihre Eingaben oder kontaktieren Sie unseren Kundendienst.")
             else:
                 st.write('Wir haben Ihnen einen Code zum zurücksetzen des Passwortes per Mail geschickt. Bitte geben Sie den Code und Ihr neues Passwort ein und klicken Sie auf zurücksetzen')
                 progress_bar = st.progress(0)
@@ -189,40 +189,18 @@ if not st.session_state.logged_in:
 else:
     # Funktionen
     
-    # Funktion zur erstellung eines neuen Teams
-    def create_team(teamname,username):
-        reference = db.collection('teams').document(teamname)
-        team = reference.get()
-        if team.exists:
-            return False
-        else:
-            reference.set({
-                "teamname": teamname,
-                "members": [username]                
-                })
-            return True
-            
-    # Funktion um einem bestehenden Team beizutreten
-    def join_team(teamname,username):
-        reference = db.collection('teams').document(teamname)
-        team = reference.get()
-        if team.exists:
-            members = team.to_dict()['members']
-            if username not in members:
-                members.append(username)
-                reference.update({
-                    "members": members
-                    })
-                return True
-            else:
-                return False
-        else:
-            return False
+    
     
  
+    
+    
+    
+    
+    
+    
     selected = option_menu(
         menu_title= None,
-        options= ['Home','Routen','Trainings','Teams','Log out'],
+        options= ['Home','Routen','Trainings','Log out'],
         icons=['house-fill','map','strava','person-plus-fill','box-arrow-right'],
         default_index=0,
         orientation='horizontal'
@@ -230,7 +208,41 @@ else:
     
     if selected == 'Home':
         st.title(f'Willkommen {st.session_state.user}')
+        client_id = "158758"
+        client_secret = "a945b138001960fa61796b4c4aa8e598321c9583"
+        redirect_uri = "http://localhost:8501"
         
+        # Anmeldung
+        auth_url = f"https://www.strava.com/oauth/authorize?client_id={client_id}&redirect_uri={redirect_uri}&response_type=code&scope=activity:read_all"
+        #st.markdown(f"[ Hier klicken um dich mit Strava zu verbinden]({auth_url})")
+        if st.markdown(f'<a href="{redirect_uri}" target="_self"> Mit Strava verbinden</a>',unsafe_allow_html=True):
+            st.session_state.logged_in = True
+            reference = db.collection('users').document(username)
+            user = reference.get()
+            user_data = user.to_dict()
+            st.session_state.user = user_data['username']
+            st.rerun()
+        
+        # Eingabefeld Login
+        code = st.text_input(" Füge den Code von Strava hier ein:")
+        
+        # Token speichern
+        if 'access_token' not in st.session_state:
+            if code:
+                token_url = "https://www.strava.com/oauth/token"
+                payload = {
+                    "client_id": client_id,
+                    "client_secret": client_secret,
+                    "code": code,
+                    "grant_type": "authorization_code"
+                    }
+                response = requests.post(token_url, data=payload)
+                    
+            if response.status_code == 200:
+                st.session_state['access_token'] = response.json()["access_token"]
+                st.success("Erfolgreich eingeloggt!")
+            else:
+                st.error("Fehler beim Einloggen")
         
         
         
@@ -247,124 +259,147 @@ else:
     elif selected == 'Trainings':
         st.title('Sieh dir deine Statistiken an!')
         
-        #Strava API verbinden
-        CLIENT_ID = "DEIN_CLIENT_ID"
-        CLIENT_SECRET = "DEIN_CLIENT_SECRET"
-        REDIRECT_URI = "http://localhost:8501"  
-        
-        st.set_page_config(page_title="🏃‍♂️ Strava Lauf-Dashboard", layout="wide")
-        st.title("🏃‍♂️ Strava Lauf-Dashboard")
-        
-        #Authentifizierung
-        auth_url = (
-            f"https://www.strava.com/oauth/authorize?client_id={CLIENT_ID}"
-            f"&redirect_uri={REDIRECT_URI}&response_type=code&scope=activity:read_all"
-        )
-        
-        st.markdown(f"[🔗 Mit Strava verbinden]({auth_url})")
-        
-        code = st.text_input("🔑 Code hier einfügen (aus URL nach Login)")
-        
-        if code:
-            with st.spinner("Authentifiziere bei Strava..."):
-                token_response = requests.post(
-                    "https://www.strava.com/oauth/token",
-                    data={
-                        "client_id": CLIENT_ID,
-                        "client_secret": CLIENT_SECRET,
-                        "code": code,
-                        "grant_type": "authorization_code",
-                    },
-                )
-                if token_response.status_code == 200:
-                    tokens = token_response.json()
-                    access_token = tokens["access_token"]
-                    st.success("✅ Zugriff erhalten!")
-                else:
-                    st.error("❌ Authentifizierung fehlgeschlagen")
-                    st.stop()
-        
-            #Daten von Strava importieren
-            with st.spinner("Lade Aktivitäten..."):
-                headers = {"Authorization": f"Bearer {access_token}"}
-                url = "https://www.strava.com/api/v3/athlete/activities"
-                params = {"per_page": 100, "page": 1}
-                r = requests.get(url, headers=headers, params=params)
-                activities = r.json()
-        
-                if isinstance(activities, dict) and activities.get("message"):
-                    st.error("Fehler beim Laden der Aktivitäten.")
-                    st.stop()
-        
-                df = pd.DataFrame(activities)
-                df = df[df["type"] == "Run"]
-        
-                if df.empty:
-                    st.warning("Keine Laufaktivitäten gefunden.")
-                    st.stop()
-        
-                #Pace berechnen und formatieren
-                df["distance_km"] = df["distance"] / 1000
-                df["moving_time_min"] = df["moving_time"] / 60
-                df["pace_min_per_km"] = df["moving_time"] / 60 / df["distance_km"]  # Minuten pro km
-                df["pace_str"] = df["pace_min_per_km"].apply(
-                    lambda x: f"{int(x)}:{int((x - int(x)) * 60):02d} min/km"
-                )
-                df["date"] = pd.to_datetime(df["start_date_local"]).dt.date
-        
-                #kumulierte Werte
-                total_distance = df["distance_km"].sum()
-                total_time_min = df["moving_time_min"].sum()
-                best_pace = df["pace_min_per_km"].min()
-                best_pace_str = f"{int(best_pace)}:{int((best_pace - int(best_pace)) * 60):02d} min/km"
-        
-            # Bestzeiten
-            st.header("🏅 Lauf-Statistiken")
-        
-            col1, col2, col3 = st.columns(3)
-            col1.metric("📏 Gesamtdistanz", f"{total_distance:.2f} km")
-            col2.metric("🕒 Gesamtzeit", f"{total_time_min:.0f} Min")
-            col3.metric("⚡ Schnellste Pace", best_pace_str)
-        
-        
-            # Letzte Läufe
-            st.header("📋 Letzte Läufe")
-        
-            st.dataframe(df[["date", "name", "distance_km", "moving_time_min", "pace_str"]].rename(columns={
-                "date": "Datum",
-                "name": "Titel",
-                "distance_km": "Distanz (km)",
-                "moving_time_min": "Dauer (min)",
-                "pace_str": "Pace",
-            }))
+        # Aktivitäten speichern
+        if 'activities' not in st.session_state and 'access_token' in st.session_state:
+            activities_url = "https://www.strava.com/api/v3/athlete/activities"
+            headers = {"Authorization": f"Bearer {st.session_state['access_token']}"}
+            params = {"per_page": 200, "page": 1}
 
-    elif selected == 'Dein Rang':
-        st.title('Sieh dir deinen Rang an!')
+            activities_response = requests.get(activities_url, headers=headers, params=params)
+
+            if activities_response.status_code == 200:
+                st.session_state['activities'] = activities_response.json()
+            else:
+                st.error("Fehler beim Laden der Aktivitäten.")
+
+        # Nach Runs filtern & Daten formatieren
+        if 'activities' in st.session_state:
+            runs = [a for a in st.session_state['activities'] if a["type"] == "Run"]
+
+            if runs:
+                data = {
+                    "Name": [],
+                    "Datum": [],
+                    "Distanz (km)": [],
+                    "Zeit (Minuten)": [],
+                    "Pace (min/km)": []
+                }
+
+                for run in runs:
+                    distanz_km = run["distance"] / 1000
+                    zeit_min = run["moving_time"] / 60
+                    pace = zeit_min / distanz_km
+                    pace_min = int(pace)
+                    pace_sec = int((pace - pace_min) * 60)
+                    pace_str = f"{pace_min}:{pace_sec:02d}"
+
+                    data["Name"].append(run["name"])
+                    data["Datum"].append(run["start_date_local"][:10])
+                    data["Distanz (km)"].append(round(distanz_km, 2))
+                    data["Zeit (Minuten)"].append(round(zeit_min, 1))
+                    data["Pace (min/km)"].append(pace_str)
+
+                df = pd.DataFrame(data)
+
+                # Statistiken
+                total_km = df["Distanz (km)"].sum()
+                total_min = df["Zeit (Minuten)"].sum()
+
+                # Levelsystem
+                def berechne_level(km):
+                    level = 1
+                    grenze = 1
+                    while km >= grenze:
+                        level += 1
+                        grenze *= 1.10  # 20% schwerer pro Level
+                    vorherige_grenze = grenze / 1.10
+                    fortschritt = (km - vorherige_grenze) / (grenze - vorherige_grenze)
+                    return level - 1, fortschritt
+
+                level, fortschritt = berechne_level(total_km)
+
+                # Abzeichen
+                def get_abzeichen(level):
+                    if level >= 100:
+                        return "🏆Champion"
+                    elif level >= 80:
+                        return "💎 Diamant"
+                    elif level >= 60:
+                        return "🥇 Gold"
+                    elif level >= 40:
+                        return "🥈 Silber"
+                    elif level >= 20:
+                        return "🥉 Bronze"
+                    else:
+                        return "🔰 Anfänger"
+
+                abzeichen = get_abzeichen(level)
+
+                # Layout
+                st.header("Deine Laufstatistiken")
+                col1, col2, col3 = st.columns(3)
+
+                col1.metric("Gesamtdistanz", f"{total_km:.1f} km")
+                col2.metric("Gesamtzeit", f"{total_min:.0f} Minuten")
+                col3.metric("Schnellste Pace", df["Pace (min/km)"].min())
+
+                st.header("Dein Level")
+
+                col4, col5 = st.columns(2)
+                col4.metric("Level", f"{level}")
+                col5.metric("Abzeichen", abzeichen)
+
+                st.progress(fortschritt)
+
+                st.caption(f"Fortschritt zu Level {level+1}: {fortschritt*100:.1f}%")
+
+                # Läufe filtern
+                st.header("Filtere deine Läufe")
+
+                min_dist = st.number_input("Minimale Distanz (km)", value=0.0)
+                max_dist = st.number_input("Maximale Distanz (km)", value=100.0)
+                min_time = st.number_input("Minimale Zeit (Minuten)", value=0.0)
+                max_time = st.number_input("Maximale Zeit (Minuten)", value=1000.0)
+                pace_filter = st.text_input("Maximale Pace (min/km) (z.B. 6:00)")
+
+                if pace_filter:
+                    try:
+                        pace_minuten, pace_sekunden = map(int, pace_filter.split(":"))
+                        pace_filter_min = pace_minuten + (pace_sekunden / 60)
+                    except:
+                        st.error("Bitte Pace im Format mm:ss eingeben.")
+                        pace_filter_min = None
+                else:
+                    pace_filter_min = None
+
+                gefiltert = df[
+                    (df["Distanz (km)"] >= min_dist) &
+                    (df["Distanz (km)"] <= max_dist) &
+                    (df["Zeit (Minuten)"] >= min_time) &
+                    (df["Zeit (Minuten)"] <= max_time)
+                ]
+
+                if pace_filter_min is not None:
+                    def pace_str_to_min(pace_str):
+                        minuten, sekunden = map(int, pace_str.split(":"))
+                        return minuten + sekunden / 60
+
+                    gefiltert = gefiltert[
+                        gefiltert["Pace (min/km)"].apply(pace_str_to_min) <= pace_filter_min
+                    ]
+
+                st.dataframe(gefiltert)
+
+            else:
+                st.warning("Keine Läufe gefunden.")
+        
+        
+        
+        
+        
     
-    elif selected == 'Teams':
           
-        choice_2 = st.selectbox("Option",["Team erstellen","Team beitreten"])
-                
-        if choice_2 == "Team erstellen":
-            username = st.text_input("Benutzername",value = st.session_state.user)
-            teamname = st.text_input("Teamname")
-            if st.button("Team erstellen"):
-                result = create_team(teamname, username)
-                if result == False:
-                    st.error('Team existiert bereits')
-                elif result == True:
-                    st.success('Team erstellt')
-                        
-                    
-        elif choice_2 == "Team beitreten":
-            username = st.text_input("Benutzername",value = st.session_state.user)
-            teamname = st.text_input("Teamname")
-            if st.button("Team beitreten"):
-                result = join_team(teamname, username)
-                if result == False:
-                    st.error('Team nicht gefunden oder Sie sind dem Team bereits beigetreten')
-                elif result == True:
-                    st.success('Team beigetreten')
+        
         
     elif selected == 'Log out':
         st.session_state.logged_in = False
