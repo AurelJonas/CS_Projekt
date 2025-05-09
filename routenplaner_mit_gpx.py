@@ -110,8 +110,8 @@ def route_erstellen(lat, lon, distancem):
 #
 
 #Durch die Funktion gpx_erstellen wird der unter der Funktion route_erstellen erstellter Rundkurs in ein GPX umgewandelt
-#Input 
-#Output 
+#Input:
+#Output: 
 def gpx_erstellen(routenkoordinaten):
     gpx = gpxpy.gpx.GPX()
     gpx.name = 'Ihre Route'
@@ -158,7 +158,7 @@ with adresseingabe:
     #Eingabefeld für Distanz:
     st.subheader ('Ihre Distanz')
     distancekm= st.slider ('Gewünschte Distanz:',0,42, format= "%d km")
-    distancem= distancekm*1000 #Damit wird die eingegbene Distanz in Kilometer in Meter umgerechnet. Ist notwendig, um anhand der nodes (Knoten) dann eine Strecke in der gewünschten Distanz ausgegeben wird.
+    distancem= distancekm*1000 #Umrechnung der Distanz in Meter, da die Abstände zwischen den einzelnen Knotenpunkte in Meter angegeben sind.
     if distancekm==0:
         st.error('Wählen Sie Ihre gewünschte Distanz')
 
@@ -185,8 +185,10 @@ with adresseingabe:
         if gpx_data:
             gpx_bytes = io.BytesIO(gpx_data.encode("utf-8"))
             st.download_button("GPX herunterladen", gpx_bytes, "route.gpx", "application/gpx+xml")
+#Quellen: 
+#Zeile 186 wurde mithilfe von ChatGPT erstellt
 
-# Rechte Spalte: Karte
+#Rechte Spalte: Karte
 with kartendarstellung:
     st.subheader("Deine heutige Joggingroute")
     zeige_karte(st.session_state.routenkoordinaten)
