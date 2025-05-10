@@ -10,7 +10,10 @@ import gpxpy #importiert und GPX-Datei zu erstellen
 import gpxpy.gpx
 import io
 
-geolocator = Nominatim(user_agent='strideUp')
+#geolocater ermöglicht es uns, den vom Nutzer eingegebenen Standort in Koordinaten umzuwandeln.
+#Der Parameter user_agent ist notwendig, damit man als Nutzer erkannt wird. 
+geolocator = Nominatim(user_agent='strideUp') 
+
 
 #Codezeile 16 bis 19 stellen sicher, dass die eingegebenen Daten während der aktuellen Sitzung 
 #gespeichert und abrufbar werden. 
@@ -21,7 +24,6 @@ if 'routenkoordinaten' not in st.session_state:
 if 'wetterposition' not in st.session_state:
     st.session_state.wetterinformationen = None
 #Quelle: Gebaut mithilfe von https://docs.streamlit.io/develop/api-reference/caching-and-state/st.session_state
-
 
 
 #die im Anschluss definierte Funktion zeige_karte stellt, beim Start unsere Web Applikation die 
