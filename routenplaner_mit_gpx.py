@@ -4,45 +4,55 @@ import osmnx as ox #wird verwendet um die Strecken zu analysieren, resp. um eine
 import requests 
 import folium 
 from streamlit_folium import folium_static #Stellt die Karte in Streamlit dar
-import networkx as nx 
-import random
-import gpxpy
+import networkx as nx
+import random #importiert um zufällige Zahlen ziehen zu können 
+import gpxpy #importiert und GPX-Datei zu erstellen
 import gpxpy.gpx
 import io
 
-geolocator = Nominatim(user_agent="strideUp")
+geolocator = Nominatim(user_agent='strideUp')
 
-#Codezeile 16 bis 19 stellen sicher, dass die Zwischenresultate 
-#gespeichert werden.
-if "routenkoordinaten" not in st.session_state:
+#Codezeile 16 bis 19 stellen sicher, dass die eingegebenen Daten während der aktuellen Sitzung 
+#gespeichert und abrufbar werden. 
+#Input= 
+#Output= 
+if 'routenkoordinaten' not in st.session_state:
     st.session_state.joggingroute = None
-if "wetterposition" not in st.session_state:
+if 'wetterposition' not in st.session_state:
     st.session_state.wetterinformationen = None
 #Quelle: Gebaut mithilfe von https://docs.streamlit.io/develop/api-reference/caching-and-state/st.session_state
 
+
+
 #die im Anschluss definierte Funktion zeige_karte stellt, beim Start unsere Web Applikation die 
-#Karte von St. Gallen dar.
-#Input= 
+#Karte von St. Gallen dar. Sobald ein Standort eingegeben wurde, wird der Kartenausschnitt an den 
+#eingegebene Standort aktualisiert.
+#mir avg_lat und avg_lon werden jeweils die von der erstellen Joggingroute durchschnittlichen 
+#Längen- und Breitengrade berechnet. Dies stellt sicher, dass die erstellte Jogginroute jeweils 
+#mittig vom gewählten Kartenabschnitt dargestellt wird.
+#Input=
 #Output= 
 def zeige_karte(koordinaten=None):
     if koordinaten:
         avg_lat = sum(coord[0] for coord in koordinaten) / len(koordinaten)
         avg_lon = sum(coord[1] for coord in koordinaten) / len(koordinaten)
         m = folium.Map(location=(avg_lat, avg_lon), zoom_start=14)
-        folium.PolyLine(koordinaten, color="blue", weight=5, opacity=0.7).add_to(m)
+        folium.PolyLine(koordinaten, color='blue', weight=5, opacity=0.7).add_to(m)
     else:
         m = folium.Map(location=[47.42391, 9.37477], zoom_start=13)
     folium_static(m, width=700, height=500)
 
+
+
 #Der folgende Code ruft basierend auf dem eingegebene Standort die im API gespeicherten Wetterinformationen ab.
 #Die Funktion wetter_abfrage ertellt auf Grundlage des eingegebenen Standortes die Wetterinformationen aus.
 #Wir haben uns dabei für die API von Openweather entschieden. 
-#Input= 
+#Parameter lat und lon entsprechen den Breiten- und Längengraden des eingegeben Standortes
 #Output= 
 def wetter_abfrage (lat,lon):
     if lat is not None and lon is not None:
         apikeyweather= '04471e45c09580cdd116430309ef988b'
-        weatherapi= (f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={apikeyweather}&units=metric")
+        weatherapi= (f'https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={apikeyweather}&units=metric')
         response= requests.get(weatherapi)
         weatherdata= response.json()
         weather= (f"Wetter:  \n {weatherdata ['weather'][0]['main']}")
@@ -61,7 +71,6 @@ def wetter_abfrage (lat,lon):
 
 #Die Funktion route_erstellen erstellt basierend auf dem eingegebene Standort und der eingegebenen Distanz einen Rundkurs. 
 #Um die Route zu erstellen, nutzen wir das Strassennetzwerk von osmnx.
-
 #Input= 
 #Output= 
 #
@@ -111,7 +120,10 @@ def route_erstellen(lat, lon, distancem):
 #Startpunkt gebaut mithilfe von https://www.geeksforgeeks.org/find-the-nearest-node-to-a-point-using-osmnx-distance-module/
 #
 
-#Durch die Funktion gpx_erstellen wird der unter der Funktion route_erstellen erstellter Rundkurs in ein GPX umgewandelt
+
+
+#Durch die Funktion gpx_erstellen wird der unter der Funktion route_erstellen erstellter Rundkurs in ein GPX umgewandelt. 
+#Dafür verwenden wird die gpxpy Bibliothek. 
 #Input:
 #Output: 
 def gpx_erstellen(routenkoordinaten):
@@ -131,9 +143,9 @@ def gpx_erstellen(routenkoordinaten):
     return gpx.to_xml()
 
 
-
-#Anschliessend folgt das Seitenlayout
-st.set_page_config(page_title="StrideUp", layout="wide")
+#AB HIER GEHT ES UMS SEITENLAYOUT
+#
+st.set_page_config(page_title='StrideUp', layout='wide')
 col1, col2 = st.columns([1, 2])
 #Quelle: Zeile 136 wurde mithilfe von https://blog.streamlit.io/designing-streamlit-apps-for-the-user-part-ii/ gebaut
 
@@ -141,15 +153,15 @@ col1, col2 = st.columns([1, 2])
 #Mithilfe des anschliessenden Codes kann der Startpunkt der Strecke eingegeben werden
 #
 with col1:
-    st.header ('Ihr Startpunkt')
-    street= st.text_input ('Strasse')
-    housenmbr= st.text_input ('Hausnummer')
+    st.header ('Gewünschter Startpunkt')
+    strasse= st.text_input ('Strasse')
+    hausnummer= st.text_input ('Hausnummer')
     plz= st.text_input ('Postleitzahl')
-    city= st.text_input ('Stadt')
+    stadt= st.text_input ('Stadt')
     country = st.selectbox ('Land',['Schweiz', 'Deutschland', 'Österreich'])
     
-    if street and housenmbr and city: #damit wird sichergesellt, dass alle Felder ausgefüllt sind
-        location = f'{street}, {housenmbr}, {plz}, {city}'
+    if strasse and hausnummer and stadt: #damit wird sichergesellt, dass alle Felder ausgefüllt sind
+        location = f'{strasse}, {hausnummer}, {plz}, {stadt}'
         koordinaten = geolocator.geocode(location) # Dieser erstellt die Koordinaten des eingegebenen Standorts.
         if koordinaten: 
             lat= koordinaten.latitude #Breitengrad
@@ -161,24 +173,24 @@ with col1:
         st.error('Bitte füllen Sie alle Felder aus') #stellt sicher, dass alle Felder ausgefüllt werden. Falls dies noch nicht geschehen ist, wird diese Fehlermeldung ausgegeben
     
     #Eingabefeld für Distanz:
-    st.subheader ('Ihre Distanz')
+    st.header ('Ihre Distanz')
     distancekm= st.slider ('Gewünschte Distanz:',0,42, format= "%d km")
     distancem= distancekm*1000 #Umrechnung der Distanz in Meter, da die Abstände zwischen einzelnen Knotenpunkte in Meter angegeben sind.
     if distancekm==0:
         st.error('Wählen Sie Ihre gewünschte Distanz')
 
-    st.subheader("Route generieren")
-    if st.button("Route erstellen"):
+    st.header('Route generieren')
+    if st.button('Route erstellen'):
         if lat and lon:
             route = route_erstellen(lat, lon, distancem)
             if route:
                 st.session_state.joggingroute = route
                 st.session_state.wetterinformationen = (lat, lon)
-                st.success("Route erfolgreich erstellt!")
+                st.success('Route erfolgreich erstellt!')
             else:
-                st.error("Es konnte keine geeignete Route gefunden werden.")
+                st.error('Es konnte keine geeignete Route gefunden werden!')
         else:
-            st.error("Bitte gib eine gültige Adresse ein.")
+            st.error('Bitte gib eine gültige Adresse ein!')
 
     # Wetter anzeigen
     if st.session_state.wetterinformationen:
@@ -188,10 +200,11 @@ with col1:
     if st.session_state.joggingroute:
         gpx_data = gpx_erstellen(st.session_state.joggingroute)
         if gpx_data:
-            gpx_bytes = io.BytesIO(gpx_data.encode("utf-8"))
-            st.download_button("GPX herunterladen", gpx_bytes, "route.gpx", "application/gpx+xml")
+            gpx_bytes = io.BytesIO(gpx_data.encode('utf-8'))
+            st.download_button('GPX herunterladen', gpx_bytes, 'route.gpx', 'application/gpx+xml')
 #Quellen: 
 #Zeile 186 wurde mithilfe von ChatGPT erstellt
+#
 
 #Rechte Spalte: Karte
 with col2:
