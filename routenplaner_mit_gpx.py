@@ -12,11 +12,13 @@ import io
 
 geolocator = Nominatim(user_agent="strideUp")
 
-#mit st.session_state wird sichergestellt, dass die Daten sozusagen zwischengespeichert werden, und nicht nach jeder neuen Eingabe komplett gestartet wird.
-if 'routenkoordinaten' not in st.session_state:
-    st.session_state.routenkoordinaten = None
-if 'wetterposition' not in st.session_state:
-    st.session_state.wetterposition = None
+#Codezeile 16 bis 19 stellen sicher, dass die Zwischenresultate 
+#gespeichert werden.
+if "routenkoordinaten" not in st.session_state:
+    st.session_state.joggingroute = None
+if "wetterposition" not in st.session_state:
+    st.session_state.wetterinformationen = None
+#Quelle: Gebaut mithilfe von https://docs.streamlit.io/develop/api-reference/caching-and-state/st.session_state
 
 #die im Anschluss definierte Funktion zeige_karte stellt, beim Start unsere Web Applikation die 
 #Karte von St. Gallen dar.
@@ -74,13 +76,13 @@ def route_erstellen(lat, lon, distancem):
         
         startpunkt= ox.distance.nearest_nodes(b, lon, lat) #Damit wird der vom eingegebenen Startpunkt nächst entfernteste Knoten gesucht
         d=nx.single_source_dijkstra_path_length(b,startpunkt,cutoff=distancem*0.5, weight= 'length') #Diese Codezeile sammelt alle vorhandenen Knotenpunkte, inerhalb der zulässigen Distanz, erstellt mithilfe von: https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.shortest_paths.weighted.single_source_dijkstra_path_length.html
-        valid_nodes = list(d.keys()) #Erstellt aus den zuvor geladenen Knotenpunkten eine Liste, durch welche anschliessend durchiteriert werden kann. 
+        knotenpunkte = list(d.keys()) #Erstellt aus den zuvor geladenen Knotenpunkten eine Liste, durch welche anschliessend durchiteriert werden kann. 
         anzahl_versuche=0
         max_versuche= 500 #Eingabe einer Anzahl an maximalen Versuchen, um zu verhindern, dass die anschliessende while-Schleife, sofern keine Route gefunden werden würde, unendlich durchlaufen würde.
         route_ok=False
         while anzahl_versuche < max_versuche and not route_ok: #Dieser While-Loop wählt zunächst zufälli
-            zwischenpunkt1 = random.choice(valid_nodes) #Damit wird ein zufälliger Mittelpunkt gewählt
-            zwischenpunkt2= random.choice(valid_nodes)#Damit wird ein zweiter zufälliger Mittelpunkt gewählt (relevant um einen Rundkurs zu erhalten)
+            zwischenpunkt1 = random.choice(knotenpunkte) #Damit wird ein zufälliger Mittelpunkt gewählt
+            zwischenpunkt2= random.choice(knotenpunkte)#Damit wird ein zweiter zufälliger Mittelpunkt gewählt (relevant um einen Rundkurs zu erhalten)
             #midpoint3= random.choice(valid_nodes)#Damit wird ein zufälliger Mittelpunkt gewählt
             anzahl_versuche+=1
             Gesamtstrecke=[]
@@ -131,11 +133,14 @@ def gpx_erstellen(routenkoordinaten):
 
 
 #Anschliessend folgt das Seitenlayout
-st.set_page_config(page_title="StrideUp", layout="wide") #https://blog.streamlit.io/designing-streamlit-apps-for-the-user-part-ii/
-adresseingabe, kartendarstellung = st.columns([1, 2])
+st.set_page_config(page_title="StrideUp", layout="wide")
+col1, col2 = st.columns([1, 2])
+#Quelle: Zeile 136 wurde mithilfe von https://blog.streamlit.io/designing-streamlit-apps-for-the-user-part-ii/ gebaut
+
 
 #Mithilfe des anschliessenden Codes kann der Startpunkt der Strecke eingegeben werden
-with adresseingabe:
+#
+with col1:
     st.header ('Ihr Startpunkt')
     street= st.text_input ('Strasse')
     housenmbr= st.text_input ('Hausnummer')
@@ -158,7 +163,7 @@ with adresseingabe:
     #Eingabefeld für Distanz:
     st.subheader ('Ihre Distanz')
     distancekm= st.slider ('Gewünschte Distanz:',0,42, format= "%d km")
-    distancem= distancekm*1000 #Umrechnung der Distanz in Meter, da die Abstände zwischen den einzelnen Knotenpunkte in Meter angegeben sind.
+    distancem= distancekm*1000 #Umrechnung der Distanz in Meter, da die Abstände zwischen einzelnen Knotenpunkte in Meter angegeben sind.
     if distancekm==0:
         st.error('Wählen Sie Ihre gewünschte Distanz')
 
@@ -167,8 +172,8 @@ with adresseingabe:
         if lat and lon:
             route = route_erstellen(lat, lon, distancem)
             if route:
-                st.session_state.routenkoordinaten = route
-                st.session_state.wetterposition = (lat, lon)
+                st.session_state.joggingroute = route
+                st.session_state.wetterinformationen = (lat, lon)
                 st.success("Route erfolgreich erstellt!")
             else:
                 st.error("Es konnte keine geeignete Route gefunden werden.")
@@ -176,12 +181,12 @@ with adresseingabe:
             st.error("Bitte gib eine gültige Adresse ein.")
 
     # Wetter anzeigen
-    if st.session_state.wetterposition:
-        wetter_abfrage(*st.session_state.wetterposition)
+    if st.session_state.wetterinformationen:
+        wetter_abfrage(*st.session_state.wetterinformationen)
 
     # GPX Download
-    if st.session_state.routenkoordinaten:
-        gpx_data = gpx_erstellen(st.session_state.routenkoordinaten)
+    if st.session_state.joggingroute:
+        gpx_data = gpx_erstellen(st.session_state.joggingroute)
         if gpx_data:
             gpx_bytes = io.BytesIO(gpx_data.encode("utf-8"))
             st.download_button("GPX herunterladen", gpx_bytes, "route.gpx", "application/gpx+xml")
@@ -189,6 +194,6 @@ with adresseingabe:
 #Zeile 186 wurde mithilfe von ChatGPT erstellt
 
 #Rechte Spalte: Karte
-with kartendarstellung:
+with col2:
     st.subheader("Deine heutige Joggingroute")
-    zeige_karte(st.session_state.routenkoordinaten)
+    zeige_karte(st.session_state.joggingroute)
