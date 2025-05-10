@@ -85,17 +85,16 @@ def route_erstellen(lat, lon, distancem):
         #Zudem laden wir das Streckennetz nur im Umkreis von der Hälfte der eingegeben Distanz.
         
         
-        startpunkt= ox.distance.nearest_nodes(b, lon, lat) #Damit wird der vom eingegebenen Startpunkt nächst entfernteste Knoten gesucht
-        d=nx.single_source_dijkstra_path_length(b,startpunkt,cutoff=distancem*0.5, weight= 'length') #Diese Codezeile sammelt alle vorhandenen Knotenpunkte, inerhalb der zulässigen Distanz, erstellt mithilfe von: https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.shortest_paths.weighted.single_source_dijkstra_path_length.html
+        startpunkt= ox.distance.nearest_nodes(b, lon, lat) #ox.distance.nearest_nodes sucht den nächst gelgenen Knotenpunkt basierend auf den Koordinaten und speichert diesen unter der Variable startpunkt
+        d=nx.single_source_dijkstra_path_length(b,startpunkt,cutoff=distancem*0.5, weight= 'length') #Diese Codezeile sammelt alle vorhandenen Knotenpunkte, inerhalb der zulässigen Distanz.
         knotenpunkte = list(d.keys()) #Erstellt aus den zuvor geladenen Knotenpunkten eine Liste, durch welche anschliessend durchiteriert werden kann. 
         anzahl_versuche=0
-        max_versuche= 500 #Eingabe einer Anzahl an maximalen Versuchen, um zu verhindern, dass die anschliessende while-Schleife, sofern keine Route gefunden werden würde, unendlich durchlaufen würde.
+        max_versuche= 500 #Eingabe einer Anzahl an maximalen Versuchen, damit die anschliessende while-Schleife, sofern keine Route gefunden wird, unendlich durchläuft.
         route_ok=False
-        while anzahl_versuche < max_versuche and not route_ok: #Dieser While-Loop wählt zunächst zufälli
+        while anzahl_versuche < max_versuche and not route_ok:
             zwischenpunkt1 = random.choice(knotenpunkte) #Damit wird ein zufälliger Mittelpunkt gewählt
             zwischenpunkt2= random.choice(knotenpunkte)#Damit wird ein zweiter zufälliger Mittelpunkt gewählt (relevant um einen Rundkurs zu erhalten)
-            #midpoint3= random.choice(valid_nodes)#Damit wird ein zufälliger Mittelpunkt gewählt
-            anzahl_versuche+=1
+            anzahl_versuche+=1 #erhöhung der Anzahl Versuche
             Gesamtstrecke=[]
             #Die anschliessenden Zeilen erstellen einen Rundkurs. Deshalb unterteilt in hinweg Zwischenweg und Rückweg, um zu vermeiden, dass Hinweg und Rückweg gleich sind.
             if nx.has_path(b,startpunkt, zwischenpunkt1) and nx.has_path(b,zwischenpunkt1, zwischenpunkt2) and nx.has_path(b,zwischenpunkt2, startpunkt):
@@ -110,14 +109,13 @@ def route_erstellen(lat, lon, distancem):
                 for f in range(len(Gesamtstrecke)-1):
                     distance= nx.shortest_path_length(b, Gesamtstrecke[f],Gesamtstrecke[f+1], weight='length')
                     routenlänge+=distance
-                if distancem-500 < routenlänge < distancem + 500: #Toleranz eingebaut um mit einer höherer Wahrscheinlichkeit eine passende Strecke zu finden. 
+                if distancem-500 < routenlänge < distancem + 500: #Toleranz eingebaut um mit höherer Wahrscheinlichkeit eine passende Strecke zu finden. 
                     route_ok=True
-
-
         if route_ok:
             return [(b.nodes[node]['y'], b.nodes[node]['x']) for node in Gesamtstrecke if node in b.nodes]
         return None
 #Quellen: 
+#Zeile 89 (d=nx.sinlge) erstellt mithilfe von  https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.shortest_paths.weighted.single_source_dijkstra_path_length.html
 #Laden des benötigten Strassennetzwerks mithilfe von https://geoffboeing.com/2016/11/osmnx-python-street-networks/
 #Startpunkt gebaut mithilfe von https://www.geeksforgeeks.org/find-the-nearest-node-to-a-point-using-osmnx-distance-module/
 #
@@ -152,8 +150,11 @@ col1, col2 = st.columns([1, 2])
 #Quelle: Zeile 136 wurde mithilfe von https://blog.streamlit.io/designing-streamlit-apps-for-the-user-part-ii/ gebaut
 
 
-#Mithilfe des anschliessenden Codes kann der Startpunkt der Strecke eingegeben werden
-#
+#In col1 kann der Startpunkt sowie die gewünschte Distanz eingegeben werden
+#Die If-Bedingung in Zeile 163 stellt sicher, dass alle Adressfelder korrekt ausgeüllt wurden und erstellt basierend darauf, die
+#adresse. Die Adresse ist anschliessend die Grundlage für die Erstellung der Koordinaten des eingegebene Startpunkts.
+#Sollte die eingebene Adresse fehlerhaft sein, wird die Fehlermeldung "Bitte geben Sie einge gültige Adresse ein" ausgelöst. 
+#Sollte noch gar keine Adresse eingegeben worden sein, wird die Fehlermeldung "Bitte geben Sie Ihren Startpunkt ein"
 with col1:
     st.header ('Gewünschter Startpunkt')
     strasse= st.text_input ('Strasse')
@@ -161,18 +162,16 @@ with col1:
     plz= st.text_input ('Postleitzahl')
     stadt= st.text_input ('Stadt')
     country = st.selectbox ('Land',['Schweiz', 'Deutschland', 'Österreich'])
-    
-    if strasse and hausnummer and stadt: #damit wird sichergesellt, dass alle Felder ausgefüllt sind
-        location = f'{strasse}, {hausnummer}, {plz}, {stadt}'
-        koordinaten = geolocator.geocode(location) # Dieser erstellt die Koordinaten des eingegebenen Standorts.
+    if strasse and hausnummer and stadt:
+        adresse = f'{strasse}, {hausnummer}, {plz}, {stadt}'
+        koordinaten = geolocator.geocode(adresse)
         if koordinaten: 
             lat= koordinaten.latitude #Breitengrad
             lon= koordinaten.longitude #Längengrad
         else: 
-            st.error ('Standort nicht gefunden') #Wird nur ausgegeben, wenn die Koordinaten nicht korrekt erstellt werden konnten
-    
+            st.error ('Bitte geben Sie einge gültige Adresse ein')
     else: 
-        st.error('Bitte füllen Sie alle Felder aus') #stellt sicher, dass alle Felder ausgefüllt werden. Falls dies noch nicht geschehen ist, wird diese Fehlermeldung ausgegeben
+        st.error('Bitte geben Sie Ihren Startpunkt ein')
     
     #Eingabefeld für Distanz:
     st.header ('Ihre Distanz')
@@ -205,10 +204,9 @@ with col1:
             gpx_bytes = io.BytesIO(gpx_data.encode('utf-8'))
             st.download_button('GPX herunterladen', gpx_bytes, 'route.gpx', 'application/gpx+xml')
 #Quellen: 
-#Zeile 186 wurde mithilfe von ChatGPT erstellt
-#
+#Zeile 206 wurde mithilfe von ChatGPT erstellt
 
 #Rechte Spalte: Karte
 with col2:
-    st.subheader("Deine heutige Joggingroute")
+    st.header("Deine heutige Joggingroute")
     zeige_karte(st.session_state.joggingroute)
