@@ -37,7 +37,7 @@ def zeige_karte(koordinaten=None):
         avg_lat = sum(coord[0] for coord in koordinaten) / len(koordinaten)
         avg_lon = sum(coord[1] for coord in koordinaten) / len(koordinaten)
         m = folium.Map(location=(avg_lat, avg_lon), zoom_start=14)
-        folium.Marker(location=koordinaten,tooltip="Click me",popup="Ihr Startpunkt",tooicon=folium.Icon(color="red")).add_to(m)
+        folium.Marker(location=startpunkt,tooltip="Click me",popup="Ihr Startpunkt",tooicon=folium.Icon(color="red")).add_to(m)
         folium.PolyLine(koordinaten, color='blue', weight=5, opacity=0.7).add_to(m)
     else:
         m = folium.Map(location=[47.42391, 9.37477], zoom_start=13)
