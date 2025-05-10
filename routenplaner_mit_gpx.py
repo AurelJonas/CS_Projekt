@@ -37,6 +37,7 @@ def zeige_karte(koordinaten=None):
         avg_lat = sum(coord[0] for coord in koordinaten) / len(koordinaten)
         avg_lon = sum(coord[1] for coord in koordinaten) / len(koordinaten)
         m = folium.Map(location=(avg_lat, avg_lon), zoom_start=14)
+        folium.Marker(location=(avg_lat, avg_lon),icon=folium.Icon(color="green")).add_to(m)
         folium.PolyLine(koordinaten, color='blue', weight=5, opacity=0.7).add_to(m)
     else:
         m = folium.Map(location=[47.42391, 9.37477], zoom_start=13)
@@ -134,7 +135,8 @@ def gpx_erstellen(routenkoordinaten):
         segment.points.append(point)
 
     return gpx.to_xml()
-
+#Quelle: 
+#Erstellt mithilfe von: 
 
 #AB HIER GEHT ES UMS SEITENLAYOUT (Ev. in ein anderes File nehmen)
 
