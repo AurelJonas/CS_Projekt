@@ -30,19 +30,17 @@ if 'wetterposition' not in st.session_state:
 #mir avg_lat und avg_lon werden jeweils die von der erstellen Joggingroute durchschnittlichen 
 #Längen- und Breitengrade berechnet. Dies stellt sicher, dass die erstellte Jogginroute jeweils 
 #mittig vom gewählten Kartenabschnitt dargestellt wird.
-#Input=
-#Output= 
 def zeige_karte(koordinaten=None):
     if koordinaten:
         avg_lat = sum(coord[0] for coord in koordinaten) / len(koordinaten)
         avg_lon = sum(coord[1] for coord in koordinaten) / len(koordinaten)
-        m = folium.Map(location=(avg_lat, avg_lon), zoom_start=14)
-        folium.PolyLine(koordinaten, color='blue', weight=5, opacity=0.7).add_to(m)
-        folium.Marker(location=koordinaten[0],popup="Startpunkt", icon=folium.Icon(color="red")).add_to(m)
+        m = folium.Map(location=(avg_lat, avg_lon), zoom_start=14) #Stellt die Karte in Streamlit dar
+        folium.PolyLine(koordinaten, color='blue', weight=5, opacity=0.7).add_to(m) #Dadurch wird die Strecke auf der Karte dargestellt
+        folium.Marker(location=koordinaten[0],popup="Startpunkt", icon=folium.Icon(color="red")).add_to(m) #Stellt Marker beim Startpunkt auf der Karte dar
     else:
         m = folium.Map(location=[47.42391, 9.37477], zoom_start=13)
     folium_static(m, width=700, height=500)
-
+#Quellen: Zeile 37 und 38 mithilfe von ChatGPT erstellt
 
 
 #Der folgende Code ruft basierend auf dem eingegebene Standort die im API gespeicherten Wetterinformationen ab.
