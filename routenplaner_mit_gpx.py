@@ -6,8 +6,8 @@ import folium
 from streamlit_folium import folium_static #Stellt die Karte in Streamlit dar
 import networkx as nx
 import random #importiert um zufällige Zahlen ziehen zu können 
-import gpxpy #importiert und GPX-Datei zu erstellen
-import gpxpy.gpx
+import gpxpy #importieren des Hauptmoduls welches es ermöglicht, zugriff auf den anschliessenden Import zu haben
+import gpxpy.gpx #ermöglicht das erstellen einer GPX-Datei
 import io
 
 #geolocater ermöglicht es uns, den vom Nutzer eingegebenen Standort in Koordinaten umzuwandeln.
@@ -16,9 +16,7 @@ geolocator = Nominatim(user_agent='strideUp')
 
 
 #Codezeile 16 bis 19 stellen sicher, dass die eingegebenen Daten während der aktuellen Sitzung 
-#gespeichert und abrufbar werden. 
-#Input= 
-#Output= 
+#gespeichert und abrufbar werden.
 if 'routenkoordinaten' not in st.session_state:
     st.session_state.joggingroute = None
 if 'wetterposition' not in st.session_state:
@@ -50,7 +48,6 @@ def zeige_karte(koordinaten=None):
 #Die Funktion wetter_abfrage ertellt auf Grundlage des eingegebenen Standortes die Wetterinformationen aus.
 #Wir haben uns dabei für die API von Openweather entschieden. 
 #Parameter lat und lon entsprechen den Breiten- und Längengraden des eingegeben Standortes
-#Output= 
 def wetter_abfrage (lat,lon):
     if lat is not None and lon is not None:
         apikeyweather= '04471e45c09580cdd116430309ef988b'
@@ -80,13 +77,11 @@ def wetter_abfrage (lat,lon):
 def route_erstellen(lat, lon, distancem):
         #mit den anschliessenden Befehlen wird das Strassennetzwerk des jeweilig eingegeben Orts heruntergeladen
         b= ox.graph_from_point ((lat, lon), dist= distancem*0.5, network_type='walk') #Die Variable b speichert die notwendigen Knotenpunkte. 
-        #Wir haben uns dabei dafür entschieden, dass wir einerseits nur Fussgängerwege laden, damit sichergestellt wird, dass keine 
-        #für Fussgänger unzugänglichen routen erstellt werden, wie beispielsweise Routen, die über eine Autobahn führen. 
-        #Zudem laden wir das Streckennetz nur im Umkreis von der Hälfte der eingegeben Distanz.
-        
-        
+                                                                                      #Wir haben uns dabei dafür entschieden, dass wir einerseits nur Fussgängerwege laden, damit sichergestellt wird, dass keine 
+                                                                                      #für Fussgänger unzugänglichen routen erstellt werden, wie beispielsweise Routen, die über eine Autobahn führen. 
+                                                                                      #Zudem laden wir das Streckennetz nur im Umkreis von der Hälfte der eingegeben Distanz.
         startpunkt= ox.distance.nearest_nodes(b, lon, lat) #ox.distance.nearest_nodes sucht den nächst gelgenen Knotenpunkt basierend auf den Koordinaten und speichert diesen unter der Variable startpunkt
-        d=nx.single_source_dijkstra_path_length(b,startpunkt,cutoff=distancem*0.5, weight= 'length') #Diese Codezeile sammelt alle vorhandenen Knotenpunkte, inerhalb der zulässigen Distanz.
+        d=nx.single_source_dijkstra_path_length(b,startpunkt,cutoff=distancem*0.5, weight= 'length') #Die Variable d speichert alle Knotenpunkte, welche innerhalb einer gewissen Distanz vom Startpunkt entfernt sind.
         knotenpunkte = list(d.keys()) #Erstellt aus den zuvor geladenen Knotenpunkten eine Liste, durch welche anschliessend durchiteriert werden kann. 
         anzahl_versuche=0
         max_versuche= 500 #Eingabe einer Anzahl an maximalen Versuchen, damit die anschliessende while-Schleife, sofern keine Route gefunden wird, unendlich durchläuft.
@@ -94,9 +89,9 @@ def route_erstellen(lat, lon, distancem):
         while anzahl_versuche < max_versuche and not route_ok:
             zwischenpunkt1 = random.choice(knotenpunkte) #Damit wird ein zufälliger Mittelpunkt gewählt
             zwischenpunkt2= random.choice(knotenpunkte)#Damit wird ein zweiter zufälliger Mittelpunkt gewählt (relevant um einen Rundkurs zu erhalten)
-            anzahl_versuche+=1 #erhöhung der Anzahl Versuche
+            anzahl_versuche+=1 #erhöhung der Anzahl Versuche bei jedem Durchlauf der while-Schleife
             Gesamtstrecke=[]
-            #Die anschliessenden Zeilen erstellen einen Rundkurs. Deshalb unterteilt in hinweg Zwischenweg und Rückweg, um zu vermeiden, dass Hinweg und Rückweg gleich sind.
+            #Der Code in Zeile 95 bis 101 erstellt einen Rundkurs, basierend auf dem Startpunkt, den Zwischenpunkten und Endpunkt.
             if nx.has_path(b,startpunkt, zwischenpunkt1) and nx.has_path(b,zwischenpunkt1, zwischenpunkt2) and nx.has_path(b,zwischenpunkt2, startpunkt):
                 hinweg = nx.shortest_path(b, startpunkt, zwischenpunkt1, weight='length') #erstellt eine Liste, der Nodes welche für den Hinweg genutzt werden               
                 zwischenweg= nx.shortest_path(b,zwischenpunkt1,zwischenpunkt2, weight='length')
@@ -105,21 +100,19 @@ def route_erstellen(lat, lon, distancem):
                 Gesamtstrecke = [node for i, node in enumerate(Gesamtstrecke) if i == 0 or node != Gesamtstrecke[i - 1]]
                 routenlänge=0
 
-                #In den anschliessenden Code-Zeilen wird die Länge der gesamtstrecke überberprüft.
+                #Der Code in Zeile 104 bis 108 überprüft die gesamtlänge der zuvor erstellten Route. Sofern die Route innerhalb der gewünschten Distanz (inklusive der Toleranz) liegt, wird die Route ausgegeben. 
                 for f in range(len(Gesamtstrecke)-1):
                     distance= nx.shortest_path_length(b, Gesamtstrecke[f],Gesamtstrecke[f+1], weight='length')
                     routenlänge+=distance
                 if distancem-500 < routenlänge < distancem + 500: #Toleranz eingebaut um mit höherer Wahrscheinlichkeit eine passende Strecke zu finden. 
                     route_ok=True
         if route_ok:
-            return [(b.nodes[node]['y'], b.nodes[node]['x']) for node in Gesamtstrecke if node in b.nodes]
+            return [(b.nodes[node]['y'], b.nodes[node]['x']) for node in Gesamtstrecke if node in b.nodes] #Erstellt eine Liste mit allen Koordinatenpunkte der zuvor erstellten Strecke, welche auch innerhalb der gewünschten Distanz liegt.
         return None
 #Quellen: 
 #Zeile 89 (d=nx.sinlge) erstellt mithilfe von  https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.shortest_paths.weighted.single_source_dijkstra_path_length.html
 #Laden des benötigten Strassennetzwerks mithilfe von https://geoffboeing.com/2016/11/osmnx-python-street-networks/
 #Startpunkt gebaut mithilfe von https://www.geeksforgeeks.org/find-the-nearest-node-to-a-point-using-osmnx-distance-module/
-#
-
 
 
 #Durch die Funktion gpx_erstellen wird der unter der Funktion route_erstellen erstellter Rundkurs in ein GPX umgewandelt. 
@@ -143,8 +136,8 @@ def gpx_erstellen(routenkoordinaten):
     return gpx.to_xml()
 
 
-#AB HIER GEHT ES UMS SEITENLAYOUT
-#
+#AB HIER GEHT ES UMS SEITENLAYOUT (Ev. in ein anderes File nehmen)
+
 st.set_page_config(page_title='StrideUp', layout='wide')
 col1, col2 = st.columns([1, 2])
 #Quelle: Zeile 136 wurde mithilfe von https://blog.streamlit.io/designing-streamlit-apps-for-the-user-part-ii/ gebaut
