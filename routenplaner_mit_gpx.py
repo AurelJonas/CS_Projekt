@@ -11,7 +11,7 @@ import gpxpy.gpx #ermöglicht das erstellen einer GPX-Datei
 import io
 
 #geolocater ermöglicht es uns, den vom Nutzer eingegebenen Standort in Koordinaten umzuwandeln.
-#Der Parameter user_agent ist notwendig, damit man als Nutzer erkannt wird. 
+#Der Parameter user_agent ist notwendig, um als Nutzer erkannt zu werden 
 geolocator = Nominatim(user_agent='strideUp') 
 
 
@@ -27,13 +27,13 @@ if 'wetterposition' not in st.session_state:
 #die im Anschluss definierte Funktion zeige_karte stellt, beim Start unsere Web Applikation die 
 #Karte von St. Gallen dar. Sobald ein Standort eingegeben wurde, wird der Kartenausschnitt an den 
 #eingegebene Standort aktualisiert.
-#mir avg_lat und avg_lon werden jeweils die von der erstellen Joggingroute durchschnittlichen 
+#mit avg_lat und avg_lon werden jeweils die von der erstellen Joggingroute durchschnittlichen 
 #Längen- und Breitengrade berechnet. Dies stellt sicher, dass die erstellte Jogginroute jeweils 
-#mittig vom gewählten Kartenabschnitt dargestellt wird.
+#mittig des gewählten Kartenauschnitts dargestellt wird
 def zeige_karte(koordinaten=None):
     if koordinaten:
-        avg_lat = sum(coord[0] for coord in koordinaten) / len(koordinaten)
-        avg_lon = sum(coord[1] for coord in koordinaten) / len(koordinaten)
+        avg_lat = sum(coord[0] for coord in koordinaten) / len(koordinaten) #Berechnet die durchschnittlichen Breitengrade der Joggingroute
+        avg_lon = sum(coord[1] for coord in koordinaten) / len(koordinaten) #Berechnet die durchschnittlichen Längengrade der Joggingroute
         m = folium.Map(location=(avg_lat, avg_lon), zoom_start=14) #Stellt die Karte in Streamlit dar
         folium.PolyLine(koordinaten, color='blue', weight=5, opacity=0.7).add_to(m) #Dadurch wird die Strecke auf der Karte dargestellt
         folium.Marker(location=koordinaten[0],popup="Startpunkt", icon=folium.Icon(color="red")).add_to(m) #Stellt Marker beim Startpunkt auf der Karte dar
@@ -45,11 +45,11 @@ def zeige_karte(koordinaten=None):
 
 #Der folgende Code ruft basierend auf dem eingegebene Standort die im API gespeicherten Wetterinformationen ab.
 #Die Funktion wetter_abfrage ertellt auf Grundlage des eingegebenen Standortes die Wetterinformationen aus.
-#Wir haben uns dabei für die API von Openweather entschieden. 
+#Wir haben uns dabei für die kostenlose API von Openweather entschieden. 
 #Parameter lat und lon entsprechen den Breiten- und Längengraden des eingegeben Standortes
 def wetter_abfrage (lat,lon):
     if lat is not None and lon is not None:
-        apikeyweather= '04471e45c09580cdd116430309ef988b'
+        apikeyweather= '04471e45c09580cdd116430309ef988b' 
         weatherapi= (f'https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={apikeyweather}&units=metric')
         response= requests.get(weatherapi)
         weatherdata= response.json()
@@ -63,18 +63,14 @@ def wetter_abfrage (lat,lon):
         col5.markdown (wind)
     else:
         st.error ('Keine Wetterdaten zu diesem Standort gefunden')
-#Quelle von wetter_abfrage: Gebaut mithilfe von https://www.youtube.com/watch?v=X1Y3HQy5Xfo&t=1113s und https://www.youtube.com/watch?v=vXpKTGCk5h
-
+#Quellen:
+#Gebaut mithilfe von https://www.youtube.com/watch?v=X1Y3HQy5Xfo&t=1113s und https://www.youtube.com/watch?v=vXpKTGCk5h
 
 
 #Die Funktion route_erstellen erstellt basierend auf dem eingegebene Standort und der eingegebenen Distanz einen Rundkurs. 
 #Um die Route zu erstellen, nutzen wir das Strassennetzwerk von osmnx.
-#Input= 
-#Output= 
-#
-#erstellt mithilfe von ChatGPT 
+#nx.shortest_path (angewendet in Zeile 92-94) sucht sich die kürzeste Strecke zwischen den Start- und Zielpunkt. die dabei verwendeten Knotenpunkte werden anschliessend als Lite gespiechert.
 def route_erstellen(lat, lon, distancem):
-        #mit den anschliessenden Befehlen wird das Strassennetzwerk des jeweilig eingegeben Orts heruntergeladen
         b= ox.graph_from_point ((lat, lon), dist= distancem*0.5, network_type='walk') #Die Variable b speichert die notwendigen Knotenpunkte. 
                                                                                       #Wir haben uns dabei dafür entschieden, dass wir einerseits nur Fussgängerwege laden, damit sichergestellt wird, dass keine 
                                                                                       #für Fussgänger unzugänglichen routen erstellt werden, wie beispielsweise Routen, die über eine Autobahn führen. 
@@ -82,6 +78,7 @@ def route_erstellen(lat, lon, distancem):
         startpunkt= ox.distance.nearest_nodes(b, lon, lat) #ox.distance.nearest_nodes sucht den nächst gelgenen Knotenpunkt basierend auf den Koordinaten und speichert diesen unter der Variable startpunkt
         d=nx.single_source_dijkstra_path_length(b,startpunkt,cutoff=distancem*0.5, weight= 'length') #Die Variable d speichert alle Knotenpunkte, welche innerhalb einer gewissen Distanz vom Startpunkt entfernt sind.
         knotenpunkte = list(d.keys()) #Erstellt aus den zuvor geladenen Knotenpunkten eine Liste, durch welche anschliessend durchiteriert werden kann. 
+        
         anzahl_versuche=0
         max_versuche= 500 #Eingabe einer Anzahl an maximalen Versuchen, damit die anschliessende while-Schleife, sofern keine Route gefunden wird, unendlich durchläuft.
         route_ok=False
@@ -91,8 +88,8 @@ def route_erstellen(lat, lon, distancem):
             anzahl_versuche+=1 #erhöhung der Anzahl Versuche bei jedem Durchlauf der while-Schleife
             Gesamtstrecke=[]
             #Der Code in Zeile 95 bis 101 erstellt einen Rundkurs, basierend auf dem Startpunkt, den Zwischenpunkten und Endpunkt.
-            if nx.has_path(b,startpunkt, zwischenpunkt1) and nx.has_path(b,zwischenpunkt1, zwischenpunkt2) and nx.has_path(b,zwischenpunkt2, startpunkt):
-                hinweg = nx.shortest_path(b, startpunkt, zwischenpunkt1, weight='length') #erstellt eine Liste, der Nodes welche für den Hinweg genutzt werden               
+            if nx.has_path(b,startpunkt, zwischenpunkt1) and nx.has_path(b,zwischenpunkt1, zwischenpunkt2) and nx.has_path(b,zwischenpunkt2, startpunkt): #Dieses If-Statement überuprüft anhand von nx.has_path ob zwischen den Punkten überhaupt ein Weg vorhanden ist.
+                hinweg = nx.shortest_path(b, startpunkt, zwischenpunkt1, weight='length')         
                 zwischenweg= nx.shortest_path(b,zwischenpunkt1,zwischenpunkt2, weight='length')
                 rückweg = nx.shortest_path(b, zwischenpunkt2, startpunkt, weight='length')
                 Gesamtstrecke= hinweg + zwischenweg + rückweg #Damit werden alle Knoten aneinandergehöngt uns es wird sichergestellt, dass der Endpunkt von hinweg und der Startpunkt von Zwischenweg nicht beide aufgelistet werden. 
@@ -115,9 +112,7 @@ def route_erstellen(lat, lon, distancem):
 
 
 #Durch die Funktion gpx_erstellen wird der unter der Funktion route_erstellen erstellter Rundkurs in ein GPX umgewandelt. 
-#Dafür verwenden wird die gpxpy Bibliothek. 
-#Input:
-#Output: 
+#Dafür verwenden wird die gpxpy Bibliothek.
 def gpx_erstellen(routenkoordinaten):
     gpx = gpxpy.gpx.GPX()
     gpx.name = 'Ihre Route'
@@ -135,6 +130,10 @@ def gpx_erstellen(routenkoordinaten):
     return gpx.to_xml()
 #Quelle: 
 #Erstellt mithilfe von: 
+
+
+
+
 
 #AB HIER GEHT ES UMS SEITENLAYOUT (Ev. in ein anderes File nehmen)
 
