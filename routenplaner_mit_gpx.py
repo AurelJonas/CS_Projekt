@@ -1,30 +1,31 @@
 import streamlit as st #Importiert für streamlit applikation
-from geopy.geocoders import Nominatim #importiert um Koordinaten des jeweiligen Standorts zu erhalten
-import osmnx as ox #wird verwendet um die Strecken zu analysieren, resp. um eine Strecke mit gewünschter Distanz zu erstellen
+from geopy.geocoders import Nominatim #Importiert um Koordinaten des jeweiligen Standorts zu erhalten
+import osmnx as ox #Wird verwendet um die Strecken zu analysieren, resp. um eine Strecke mit gewünschter Distanz zu erstellen
 import requests 
-import folium 
-from streamlit_folium import folium_static #Stellt die Karte in Streamlit dar
+import folium #Dient der Kartendarstellung
+from streamlit_folium import folium_static #Dient der Kartendarstellung in Streamlit dar
 import networkx as nx
-import random #importiert um zufällige Zahlen ziehen zu können 
-import gpxpy #importieren des Hauptmoduls welches es ermöglicht, zugriff auf den anschliessenden Import zu haben
-import gpxpy.gpx #ermöglicht das erstellen einer GPX-Datei
-import io
+import random #Importiert um zufällige Zahlen ziehen zu können 
+import gpxpy #Importieren des Hauptmoduls welches es ermöglicht, zugriff auf den anschliessenden Import zu haben
+import gpxpy.gpx #Importiert um eine GPX Datei zu erstellen
+import io #ermöglicht XXXXX
+
 
 #geolocater ermöglicht es uns, den vom Nutzer eingegebenen Standort in Koordinaten umzuwandeln.
 #Der Parameter user_agent ist notwendig, um als Nutzer erkannt zu werden 
 geolocator = Nominatim(user_agent='strideUp') 
 
-
-#Codezeile 16 bis 19 stellen sicher, dass die eingegebenen Daten während der aktuellen Sitzung 
+#Codezeile 21 bis 23 stellen sicher, dass die eingegebenen Daten während der aktuellen Sitzung 
 #gespeichert und abrufbar werden.
 if 'routenkoordinaten' not in st.session_state:
     st.session_state.joggingroute = None
 if 'wetterposition' not in st.session_state:
     st.session_state.wetterinformationen = None
-#Quelle: Gebaut mithilfe von https://docs.streamlit.io/develop/api-reference/caching-and-state/st.session_state
+#Quelle: 
+#Gebaut mithilfe von https://docs.streamlit.io/develop/api-reference/caching-and-state/st.session_state
 
 
-#die im Anschluss definierte Funktion zeige_karte stellt, beim Start unsere Web Applikation die 
+#Die Funktion zeige_karte stellt, beim Start unsere Web Applikation die 
 #Karte von St. Gallen dar. Sobald ein Standort eingegeben wurde, wird der Kartenausschnitt an den 
 #eingegebene Standort aktualisiert.
 #mit avg_lat und avg_lon werden jeweils die von der erstellen Joggingroute durchschnittlichen 
@@ -40,17 +41,17 @@ def zeige_karte(koordinaten=None):
     else:
         m = folium.Map(location=[47.42391, 9.37477], zoom_start=13)
     folium_static(m, width=700, height=500)
-#Quellen: Zeile 37 und 38 mithilfe von ChatGPT erstellt
+#Quellen: 
+#Zeile 38 und 39 mithilfe von ChatGPT erstellt
 
 
-#Der folgende Code ruft basierend auf dem eingegebene Standort die im API gespeicherten Wetterinformationen ab.
-#Die Funktion wetter_abfrage ertellt auf Grundlage des eingegebenen Standortes die Wetterinformationen aus.
+#Dir Funktion wetter_abfrage ruft basierend auf dem eingegebene Standort die im API gespeicherten Wetterinformationen ab und gibt diese aus.
 #Wir haben uns dabei für die kostenlose API von Openweather entschieden. 
-#Parameter lat und lon entsprechen den Breiten- und Längengraden des eingegeben Standortes
+#Parameter lat und lon entsprechen den Breiten- und Längengraden des eingegeben Standortes.
 def wetter_abfrage (lat,lon):
     if lat is not None and lon is not None:
         apikeyweather= '04471e45c09580cdd116430309ef988b' 
-        weatherapi= (f'https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={apikeyweather}&units=metric')
+        weatherapi= (f'https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={apikeyweather}&units=metric') #Ruft die im API hinterlegten Wetterdaten für den eingegebene Standort ab. 
         response= requests.get(weatherapi)
         weatherdata= response.json()
         weather= (f"Wetter:  \n {weatherdata ['weather'][0]['main']}")
@@ -66,10 +67,9 @@ def wetter_abfrage (lat,lon):
 #Quellen:
 #Gebaut mithilfe von https://www.youtube.com/watch?v=X1Y3HQy5Xfo&t=1113s und https://www.youtube.com/watch?v=vXpKTGCk5h
 
-
 #Die Funktion route_erstellen erstellt basierend auf dem eingegebene Standort und der eingegebenen Distanz einen Rundkurs. 
 #Um die Route zu erstellen, nutzen wir das Strassennetzwerk von osmnx.
-#nx.shortest_path (angewendet in Zeile 92-94) sucht sich die kürzeste Strecke zwischen den Start- und Zielpunkt. die dabei verwendeten Knotenpunkte werden anschliessend als Lite gespiechert.
+#nx.shortest_path (angewendet in Zeile 92-95) sucht sich die kürzeste Strecke zwischen den Start- und Zielpunkt. die dabei verwendeten Knotenpunkte werden anschliessend als Lite gespiechert.
 def route_erstellen(lat, lon, distancem):
         b= ox.graph_from_point ((lat, lon), dist= distancem*0.5, network_type='walk') #Die Variable b speichert die notwendigen Knotenpunkte. 
                                                                                       #Wir haben uns dabei dafür entschieden, dass wir einerseits nur Fussgängerwege laden, damit sichergestellt wird, dass keine 
@@ -87,18 +87,18 @@ def route_erstellen(lat, lon, distancem):
             zwischenpunkt2= random.choice(knotenpunkte)#Damit wird ein zweiter zufälliger Mittelpunkt gewählt (relevant um einen Rundkurs zu erhalten)
             anzahl_versuche+=1 #erhöhung der Anzahl Versuche bei jedem Durchlauf der while-Schleife
             Gesamtstrecke=[]
-            #Der Code in Zeile 95 bis 101 erstellt einen Rundkurs, basierend auf dem Startpunkt, den Zwischenpunkten und Endpunkt.
+            #Das nachfolgende If-Statement erstellt einen Rundkurs, basierend auf dem Startpunkt, den Zwischenpunkten und Endpunkt.
             if nx.has_path(b,startpunkt, zwischenpunkt1) and nx.has_path(b,zwischenpunkt1, zwischenpunkt2) and nx.has_path(b,zwischenpunkt2, startpunkt): #Dieses If-Statement überuprüft anhand von nx.has_path ob zwischen den Punkten überhaupt ein Weg vorhanden ist.
                 hinweg = nx.shortest_path(b, startpunkt, zwischenpunkt1, weight='length')         
                 zwischenweg= nx.shortest_path(b,zwischenpunkt1,zwischenpunkt2, weight='length')
                 rückweg = nx.shortest_path(b, zwischenpunkt2, startpunkt, weight='length')
                 Gesamtstrecke= hinweg + zwischenweg + rückweg #Damit werden alle Knoten aneinandergehöngt uns es wird sichergestellt, dass der Endpunkt von hinweg und der Startpunkt von Zwischenweg nicht beide aufgelistet werden. 
                 Gesamtstrecke = [node for i, node in enumerate(Gesamtstrecke) if i == 0 or node != Gesamtstrecke[i - 1]]
+                
                 routenlänge=0
-
-                #Der Code in Zeile 104 bis 108 überprüft die gesamtlänge der zuvor erstellten Route. Sofern die Route innerhalb der gewünschten Distanz (inklusive der Toleranz) liegt, wird die Route ausgegeben. 
-                for f in range(len(Gesamtstrecke)-1):
-                    distance= nx.shortest_path_length(b, Gesamtstrecke[f],Gesamtstrecke[f+1], weight='length')
+                #Die nachfolgende for-Schleife überprüft die gesamtlänge der zuvor erstellten Route. Sofern die Route innerhalb der gewünschten Distanz (inklusive der Toleranz) liegt, wird die Route ausgegeben. 
+                for f in range(len(Gesamtstrecke)-1): #Die -1 ist am Ende relevant, um zu verhindern, dass bis zum letzten Wert der Liste gerechnet werden kann.
+                    distance= nx.shortest_path_length(b, Gesamtstrecke[f],Gesamtstrecke[f+1], weight='length') #Berechnet auf Grundlage der Knotenpunkte die Distanz zwischen zwei Knotenpunkten aus.
                     routenlänge+=distance
                 if distancem-500 < routenlänge < distancem + 500: #Toleranz eingebaut um mit höherer Wahrscheinlichkeit eine passende Strecke zu finden. 
                     route_ok=True
@@ -106,7 +106,7 @@ def route_erstellen(lat, lon, distancem):
             return [(b.nodes[node]['y'], b.nodes[node]['x']) for node in Gesamtstrecke if node in b.nodes] #Erstellt eine Liste mit allen Koordinatenpunkte der zuvor erstellten Strecke, welche auch innerhalb der gewünschten Distanz liegt.
         return None
 #Quellen: 
-#Zeile 89 (d=nx.sinlge) erstellt mithilfe von  https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.shortest_paths.weighted.single_source_dijkstra_path_length.html
+#Zeile 79 (d=nx.single_source_dijkstra_path_length) erstellt mithilfe von  https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.shortest_paths.weighted.single_source_dijkstra_path_length.html
 #Laden des benötigten Strassennetzwerks mithilfe von https://geoffboeing.com/2016/11/osmnx-python-street-networks/
 #Startpunkt gebaut mithilfe von https://www.geeksforgeeks.org/find-the-nearest-node-to-a-point-using-osmnx-distance-module/
 
@@ -114,28 +114,33 @@ def route_erstellen(lat, lon, distancem):
 #Durch die Funktion gpx_erstellen wird der unter der Funktion route_erstellen erstellter Rundkurs in ein GPX umgewandelt. 
 #Dafür verwenden wird die gpxpy Bibliothek.
 def gpx_erstellen(routenkoordinaten):
-    gpx = gpxpy.gpx.GPX()
+    gpx = gpxpy.gpx.GPX() #Erstellt ein neues GPX-File
     gpx.name = 'Ihre Route'
 
-    track = gpxpy.gpx.GPXTrack()
-    gpx.tracks.append(track)
+    track = gpxpy.gpx.GPXTrack() #Erstellt einen neuen Track
+    gpx.tracks.append(track) #Dadurch wird der soeben erstellte Track dem GPX-File hinzugefügt
 
-    segment = gpxpy.gpx.GPXTrackSegment()
-    track.segments.append(segment)
+    segment = gpxpy.gpx.GPXTrackSegment() #Erstellt ein neues Track-Segment. das Segment ist dabei eine Sammlung zahlreicher GPS-Daten
+    track.segments.append(segment) #Fügt das Segment dem GPX-File hinzu
 
+    #Diese for-Schleife durchläuft die Liste routenkoordinaten, welche alle einzelnen Breiten- und Längengrade 
+    #beinhaltet, die bei der Funktion route_erstellen erstellten Strecke. 
+    #Durch GPXTrackPoint, wird von jedem Koordinatenpunkt (besteht jeweils aus Längen- und Breitengraden) den dazugehörigen 
+    #GPS-Punkt erstellen und diesen dem Segment im GPX-File hinzufügen.
     for lat, lon in routenkoordinaten:
         point = gpxpy.gpx.GPXTrackPoint(lat, lon)
         segment.points.append(point)
 
-    return gpx.to_xml()
+    return gpx.to_xml() #Wandelt das GPX-File in die XLM-Darstellung um. Dies ist notwendig, damit das GPX-File beispielsweise 
+                        #auf Plattformen wie Strava hochgeladen werden und verarbeitet werden kann.
+
 #Quelle: 
-#Erstellt mithilfe von: 
+#Erstellt mithilfe von https://pypi.org/project/gpxpy/
+#Zeile 127 und 128 erstellt mithilfe von ChatGPT
 
 
 
-
-
-#AB HIER GEHT ES UMS SEITENLAYOUT (Ev. in ein anderes File nehmen)
+#AB HIER GEHT ES UMS SEITENLAYOUT
 
 st.set_page_config(page_title='StrideUp', layout='wide')
 col1, col2 = st.columns([1, 2])
@@ -156,10 +161,10 @@ with col1:
     country = st.selectbox ('Land',['Schweiz', 'Deutschland', 'Österreich'])
     if strasse and hausnummer and stadt:
         adresse = f'{strasse}, {hausnummer}, {plz}, {stadt}'
-        koordinaten = geolocator.geocode(adresse)
+        koordinaten = geolocator.geocode(adresse) #Erstellt die Breiten- und Längengrade für die eingegebene Adresse.
         if koordinaten: 
-            lat= koordinaten.latitude #Breitengrad
-            lon= koordinaten.longitude #Längengrad
+            lat= koordinaten.latitude #Speichert Breitengrad des eingegebene Startpunkt in Variable lat
+            lon= koordinaten.longitude #Speichert Längengrade des eingegebene Startpunk in Variable lon
         else: 
             st.error ('Bitte geben Sie einge gültige Adresse ein')
     else: 
@@ -177,17 +182,20 @@ with col1:
         if lat and lon:
             route = route_erstellen(lat, lon, distancem)
             if route:
-                st.session_state.joggingroute = route
-                st.session_state.wetterinformationen = (lat, lon)
-                st.success('Route erfolgreich erstellt!')
+                st.session_state.joggingroute = route #Spechert die in der Funktion route_erstellten Route in st.session_state.joggingroute
+                st.session_state.wetterinformationen = (lat, lon) #speichert die Koordinaten des eingegebenen Standorts in st.session_state.wetterinformationen
+                st.success('Route erfolgreich erstellt')
             else:
-                st.error('Es konnte keine geeignete Route gefunden werden!')
+                st.error('Es konnte keine geeignete Route gefunden werden')
         else:
-            st.error('Bitte gib eine gültige Adresse ein!')
+            st.error('Bitte geben Sie eine gültige Adresse ein')
 
     # Wetter anzeigen
     if st.session_state.wetterinformationen:
-        wetter_abfrage(*st.session_state.wetterinformationen)
+        wetter_abfrage(*st.session_state.wetterinformationen) #die in session_state.wetterinformationen gespeicherten Koordinaten, sind als Tuple vorhanden. 
+                                                              #Damit die Funktion wetter_abfrage jedoch das Wetter vom eingegebenen Standort findet, 
+                                                              #müssen die Längen- und Breitengrade als einzelnes Argument eingegeben werden. Und dies wird durch
+                                                              #den * vor st.session_state.wetterinformationen sichergestellt.
 
     # GPX Download
     if st.session_state.joggingroute:
@@ -196,7 +204,7 @@ with col1:
             gpx_bytes = io.BytesIO(gpx_data.encode('utf-8'))
             st.download_button('GPX herunterladen', gpx_bytes, 'route.gpx', 'application/gpx+xml')
 #Quellen: 
-#Zeile 206 wurde mithilfe von ChatGPT erstellt
+#Zeile 204 wurde mithilfe von ChatGPT erstellt
 
 #Rechte Spalte: Karte
 with col2:
