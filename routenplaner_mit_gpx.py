@@ -217,7 +217,7 @@ with col1:
 #In col2 wird die KArte dargestellt.
 with col2:
     st.header("Deine heutige Joggingroute")
-    if st.session_state.joggingroute:
-        zeige_karte(st.session_state.joggingroute)
+    if st.session_state.['joggingroute']:
+        zeige_karte(st.session_state.['joggingroute'])
     else:
         zeige_karte()
