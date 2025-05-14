@@ -43,7 +43,6 @@ def zeige_karte(koordinaten=None):
     folium_static(m, width=700, height=500)
 
 
-
 #Die Funktion wetter_abfrage ruft über die API von OpenWeather die Wetterinformationen des angegebenen Standorts auf.
 #Der Standort wird dabei über die dazugehörigen Parameter lat und lon (Breiten- und Längengrade) abgerufen.
 #Verwendet wird die kostenlose API von OpenWeather
@@ -96,7 +95,12 @@ def route_erstellen(lat, lon, distancem):
                 zwischenweg= nx.shortest_path(b,zwischenpunkt1,zwischenpunkt2, weight='length')
                 rückweg = nx.shortest_path(b, zwischenpunkt2, startpunkt, weight='length')
                 Gesamtstrecke= hinweg + zwischenweg + rückweg #Damit werden alle Knoten aneinandergehöngt uns es wird sichergestellt, dass der Endpunkt von hinweg und der Startpunkt von Zwischenweg nicht beide aufgelistet werden. 
-                Gesamtstrecke = [node for i, node in enumerate(Gesamtstrecke) if i == 0 or node != Gesamtstrecke[i - 1]]
+                strecke=[]
+                #Entfernt aufeinanderfolgende doppelte Knoten aus der Liste Gesamtstrecke
+                for i, node in enumerate(Gesamtstrecke): 
+                    if i==0 or node !=Gesamtstrecke [i-1]:
+                        strecke.append(node)
+                Gesamtstrecke = strecke
                 routenlänge=0
 
                 #Die nachfolgende for-Schleife überprüft die gesamtlänge der zuvor erstellten Route. Sofern die Route innerhalb der gewünschten Distanz (inklusive der Toleranz) liegt, wird die Route ausgegeben. 
@@ -140,7 +144,7 @@ def gpx_erstellen(routenkoordinaten):
 
 #Quellen: 
 #Erstellt mithilfe von https://pypi.org/project/gpxpy/
-#Zeile 135 erstellt mithilfe von ChatGPT
+#Zeile 139 erstellt mithilfe von ChatGPT
 
 
 #AB HIER GEHT ES UMS SEITENLAYOUT
@@ -153,7 +157,7 @@ lon = None
 
 
 #In col1 kann der Startpunkt sowie die gewünschte Distanz eingegeben werden
-#Die If-Bedingung in Zeile 168 stellt sicher, dass alle Adressfelder korrekt ausgeüllt wurden und erstellt basierend darauf, die
+#Die If-Bedingung in Zeile 171 stellt sicher, dass alle Adressfelder korrekt ausgeüllt wurden und erstellt basierend darauf, die
 #adresse. Die Adresse ist anschliessend die Grundlage für die Erstellung der Koordinaten des eingegebene Startpunkts.
 #Sollte die eingebene Adresse fehlerhaft sein, wird die Fehlermeldung "Bitte geben Sie einge gültige Adresse ein" ausgelöst. 
 #Sollte noch gar keine Adresse eingegeben worden sein, wird die Fehlermeldung "Bitte geben Sie Ihren Startpunkt ein"
@@ -208,7 +212,7 @@ with col1:
             gpx_bytes = io.BytesIO(gpx_data.encode('utf-8')) #Durch gpx_data.encode('utf-8') wird der im gpx_data file gespeicherten Textstring in Bytes um. Notwendig um die GPX-Datei herunterladen zu können.
             st.download_button('GPX herunterladen', gpx_bytes, 'route.gpx', 'application/gpx+xml')
 #Quellen: 
-#Zeile 208 wurde mithilfe von ChatGPT erstellt.
+#Zeile 212 wurde mithilfe von ChatGPT erstellt.
 
 #In col2 wird die KArte dargestellt.
 with col2:
