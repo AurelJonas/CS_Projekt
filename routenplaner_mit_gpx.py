@@ -20,7 +20,7 @@ geolocator = Nominatim(user_agent='strideUp')
 if 'joggingroute' not in st.session_state:
     st.session_state['joggingroute'] = None
 if 'wetterinformationen' not in st.session_state:
-    st.session_state['wetterinformationen'] = nearest_nodes                 
+    st.session_state['wetterinformationen'] = None                 
 #Quelle: 
 #Gebaut mithilfe von https://docs.streamlit.io/develop/api-reference/caching-and-state/st.session_state
 
