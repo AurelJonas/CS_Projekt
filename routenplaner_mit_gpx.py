@@ -7,7 +7,7 @@ from streamlit_folium import folium_static #Stellt die Karte in Streamlit dar.
 import networkx as nx #Importiert, um die Route zu erstellen.
 import random #Importiert um zufällige Knotenpunkte zu wählen.
 import gpxpy #Importiert das Hauptmodul, das den Zugriff auf GPX-Funktionen ermöglicht.
-import gpxpy.gpx #Importiert, um eine GPX Datei zu erstellen.
+import gpxpy.gpx #Importiert, um eine GPX-Datei zu erstellen.
 import io #Importiert, um auf io.BytesIO zuzugreifen und somit das GPX-File Nutzer*innen zum Download zur Verfügung zu stellen.
 
 #Geolocator ermöglicht es uns, den von Nutzer*innen eingegebenen Standort in Koordinaten umzuwandeln.
