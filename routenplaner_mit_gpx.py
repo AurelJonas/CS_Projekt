@@ -42,7 +42,7 @@ def zeige_karte(koordinaten=None):
     folium_static(m, width=700, height=500)
 
 
-#Die Funktion wetter_abfrage ruft über die API von OpenWeather die Wetterinformationen des angegebenen Standorts auf.
+#Die Funktion wetter_abfrage ruft über die API von OpenWeather die Wetterinformationen des eingegebenen Standorts auf.
 #Der Standort wird dabei über die dazugehörigen Parameter lat und lon (Breiten- und Längengrade) abgerufen.
 #Verwendet wird die kostenlose API von OpenWeather.
 #Die Wetterinformationen werden anschliessend im Streamlit-Interface in drei Spalten dargestellt.
@@ -69,24 +69,24 @@ def wetter_abfrage (lat,lon):
 #Erstellt auf Grundlage von https://www.youtube.com/watch?v=X1Y3HQy5Xfo&t=1113s und https://www.youtube.com/watch?v=vXpKTGCk5h
 
 
-#Die Funktion route_erstellen erstellt basierend auf dem eingegebene Standort und der eingegebenen Distanz einen Route. 
+#Die Funktion route_erstellen erstellt basierend auf dem eingegebenen Standort und der eingegebenen Distanz einen Route. 
 #Um die Route zu erstellen, nutzen wir das Strassennetzwerk von osmnx.
-#nx.shortest_path ermöglicht die Berechnung der kürzesten Route zwischen zwei Punkten im Graphen. Die dabei verwendeten Knotenpunkte werden anschliessend als Liste gespiechert.
+#nx.shortest_path ermöglicht die Berechnung der kürzesten Route zwischen zwei Punkten im Graphen. Die dabei verwendeten Knotenpunkte werden anschliessend als Liste gespeichert.
 def route_erstellen(lat, lon, distancem):
-        #Mit den anschliessenden Funktionen wird das Strassennetzwerk des jeweilig eingegeben Orts heruntergeladen.
+        #Mit den anschliessenden Funktionen wird das Strassennetzwerk des jeweilig eingegeben Ortes heruntergeladen.
         b= ox.graph_from_point ((lat, lon), dist= distancem*0.5, network_type='walk') #Die Variable b speichert die notwendigen Knotenpunkte. 
                                                                                       #Wir haben uns dabei dafür entschieden, dass wir einerseits nur Fussgängerwege laden, damit sichergestellt wird, dass keine 
-                                                                                      #für Fussgänger unzugänglichen routen erstellt werden, wie beispielsweise Routen, die über eine Autobahn führen. 
+                                                                                      #für Fussgänger unzugänglichen Routen erstellt werden, wie beispielsweise Routen, die über eine Autobahn führen. 
                                                                                       #Zudem laden wir das Streckennetz nur im Umkreis von der Hälfte der eingegeben Distanz.
         
         startpunkt= ox.distance.nearest_nodes(b, lon, lat) #ox.distance.nearest_nodes sucht den nächst gelegenen Knotenpunkt basierend auf den Koordinaten und speichert diesen unter der Variable startpunkt.
         d=nx.single_source_dijkstra_path_length(b,startpunkt,cutoff=distancem*0.5, weight= 'length') #Die Variable d speichert alle Knotenpunkte, die innerhalb einer gewissen Distanz vom Startpunkt entfernt sind, als Dictionary.
-        knotenpunkte = list(d.keys()) #Erstellt aus den zuvor geladenen Knotenpunkten eine Liste, durch die anschliessend durchiteriert werden kann. 
+        knotenpunkte = list(d.keys()) #Erstellt aus den zuvor geladenen Knotenpunkten eine Liste, durch die anschliessend iteriert werden kann. 
         anzahl_versuche = 0
         max_versuche = 500 #Eingabe einer Anzahl an maximalen Versuchen, damit die anschliessende while-Schleife, sofern keine Route gefunden wird, nicht unendlich durchläuft.
         route_ok = False
         while anzahl_versuche < max_versuche and not route_ok:
-            zwischenpunkt1 = random.choice(knotenpunkte) #Um zu verhindern, dass der Hin- und Rückweg identisch sind, werden zwei zufällige Knoten aus den zur Verfügung stehenden Knoten gewählt.
+            zwischenpunkt1 = random.choice(knotenpunkte) #Um zu verhindern, dass der Hin- und Rückweg identisch ist, werden zwei zufällige Knoten aus den zur Verfügung stehenden Knoten gewählt.
             zwischenpunkt2= random.choice(knotenpunkte)
             anzahl_versuche+=1 #Erhöhung der Anzahl Versuche bei jedem Durchlauf der while-Schleife.
             Gesamtstrecke=[]
@@ -140,7 +140,7 @@ def gpx_erstellen(routenkoordinaten):
         point = gpxpy.gpx.GPXTrackPoint(lat, lon)
         segment.points.append(point)
 
-    return gpx.to_xml() #Wandelt das GPX-File in die XLM-Darstellung um. Dies ist notwendig, damit das GPX-File beispielsweise 
+    return gpx.to_xml() #Wandelt das GPX-File in die XML-Darstellung um. Dies ist notwendig, damit das GPX-File beispielsweise 
                         #auf Plattformen wie Strava hochgeladen werden und verarbeitet werden kann.
 
 #Quellen: 
@@ -158,9 +158,9 @@ lon = None
 
 
 #In col1 kann der Startpunkt sowie die gewünschte Distanz eingegeben werden.
-#Die If-Statement in Zeile 172 stellt sicher, dass alle Adressfelder korrekt ausgefüllt wurden und erstellt basierend darauf, die
-#Adresse. Die Adresse ist anschliessend die Grundlage für die Erstellung der Koordinaten des eingegebene Startpunkts.
-#Sollte die eingebene Adresse fehlerhaft sein, wird die Fehlermeldung "Bitte geben Sie eine gültige Adresse ein" ausgelöst. 
+#Die If-Statement in Zeile 172 stellt sicher, dass alle Adresseingaben korrekt sind und erstellt basierend darauf, die
+#Adresse. Die Adresse ist anschliessend die Grundlage für die Erstellung der Koordinaten des eingegebenen Startpunkt.
+#Sollte die eingegebene Adresse fehlerhaft sein, wird die Fehlermeldung "Bitte geben Sie eine gültige Adresse ein" ausgelöst. 
 #Sollte noch gar keine Adresse eingegeben sein, wird die Fehlermeldung "Bitte geben Sie Ihren Startpunkt ein" ausgelöst.
 with col1:
     st.header ('Gewünschter Startpunkt')
@@ -171,12 +171,12 @@ with col1:
     country = st.selectbox ('Land',['Schweiz', 'Deutschland', 'Österreich'])
     if strasse and hausnummer and stadt:
         adresse = f'{strasse}, {hausnummer}, {plz}, {stadt}'
-        koordinaten = geolocator.geocode(adresse) #Erstellt die Breiten- und Längengrade der eingegebene Adresse.
+        koordinaten = geolocator.geocode(adresse) #Erstellt die Breiten- und Längengrade der eingegebenen Adresse.
         if koordinaten: 
             lat= koordinaten.latitude #Speichert Breitengrad des eingegebenen Startpunkt in Variable lat.
-            lon= koordinaten.longitude #Speichert Längengrade des eingegebenen Startpunk in Variable lon.
+            lon= koordinaten.longitude #Speichert Längengrade des eingegebenen Startpunkt in Variable lon.
         else: 
-            st.error ('Bitte geben Sie einge gültige Adresse ein')
+            st.error ('Bitte geben Sie eine gültige Adresse ein')
     else: 
         st.error('Bitte geben Sie Ihren Startpunkt ein')
     
@@ -217,7 +217,7 @@ with col1:
 
 #In col2 wird Karte und erstellte Route dargestellt.
 with col2:
-    st.header("Deine heutige Joggingroute")
+    st.header("Ihre heutige Joggingroute")
     if st.session_state['joggingroute']:
         zeige_karte(st.session_state['joggingroute'])
     else:
