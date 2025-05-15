@@ -5,7 +5,7 @@ import requests
 import folium 
 from streamlit_folium import folium_static #Stellt die Karte in Streamlit dar.
 import networkx as nx #Importiert, um die Route zu erstellen.
-import random #Importiert, um zufällige Zahlen ziehen zu können.
+import random #Importiert um zufällige Knotenpunkte zu wählen.
 import gpxpy #Importiert das Hauptmodul, das den Zugriff auf GPX-Funktionen ermöglicht.
 import gpxpy.gpx #Importiert, um eine GPX Datei zu erstellen.
 import io #Importiert, um auf io.BytesIO zuzugreifen und somit das GPX-File Nutzer*innen zum Download zur Verfügung zu stellen.
@@ -15,8 +15,8 @@ import io #Importiert, um auf io.BytesIO zuzugreifen und somit das GPX-File Nutz
 geolocator = Nominatim(user_agent='strideUp') 
 
 
-#Anschliessender Code-Block stellt sicher, dass die eingegebenen Daten während der jeweiligen Sitzung 
-#gespeichert und abrufbar sind.
+
+#Anschliessender Code-Block speichert die Nutzereingaben während der Sitzung.
 if 'joggingroute' not in st.session_state:
     st.session_state['joggingroute'] = None
 if 'wetterinformationen' not in st.session_state:
@@ -34,8 +34,8 @@ def zeige_karte(koordinaten=None):
     if koordinaten:
         avg_lat = sum(coord[0] for coord in koordinaten) / len(koordinaten) #Berechnet die durchschnittlichen Breitengrade der Joggingroute.
         avg_lon = sum(coord[1] for coord in koordinaten) / len(koordinaten) #Berechnet die durchschnittlichen Längengrade der Joggingroute.
-        m = folium.Map(location=(avg_lat, avg_lon), zoom_start=14) #Stellt die Karte in Streamlit dar.
-        folium.PolyLine(koordinaten, color='blue', weight=5, opacity=0.7).add_to(m) #Dadurch wird die Strecke auf der Karte dargestellt.
+        m = folium.Map(location=(avg_lat, avg_lon), zoom_start=14) #Darstellung des gewünschten Kartenausschnitts in Streamlit.
+        folium.PolyLine(koordinaten, color='blue', weight=5, opacity=0.7).add_to(m) #Zeichnet die Joggingroute in der Karte ein.
         folium.Marker(location=koordinaten[0],popup="Startpunkt", icon=folium.Icon(color="red")).add_to(m) #Stellt Marker beim Startpunkt dar.
     else:
         m = folium.Map(location=[47.42391, 9.37477], zoom_start=13)
@@ -71,7 +71,7 @@ def wetter_abfrage (lat,lon):
 
 #Die Funktion route_erstellen erstellt basierend auf dem eingegebene Standort und der eingegebenen Distanz einen Route. 
 #Um die Route zu erstellen, nutzen wir das Strassennetzwerk von osmnx.
-#nx.shortest_path berechnet die kürzeste Route zwischen zwei Punkten im Graphen. Die dabei verwendeten Knotenpunkte werden anschliessend als Liste gespiechert.
+#nx.shortest_path ermöglicht die Berechnung der kürzesten Route zwischen zwei Punkten im Graphen. Die dabei verwendeten Knotenpunkte werden anschliessend als Liste gespiechert.
 def route_erstellen(lat, lon, distancem):
         #Mit den anschliessenden Funktionen wird das Strassennetzwerk des jeweilig eingegeben Orts heruntergeladen.
         b= ox.graph_from_point ((lat, lon), dist= distancem*0.5, network_type='walk') #Die Variable b speichert die notwendigen Knotenpunkte. 
@@ -83,7 +83,7 @@ def route_erstellen(lat, lon, distancem):
         d=nx.single_source_dijkstra_path_length(b,startpunkt,cutoff=distancem*0.5, weight= 'length') #Die Variable d speichert alle Knotenpunkte, die innerhalb einer gewissen Distanz vom Startpunkt entfernt sind, als Dictionary.
         knotenpunkte = list(d.keys()) #Erstellt aus den zuvor geladenen Knotenpunkten eine Liste, durch die anschliessend durchiteriert werden kann. 
         anzahl_versuche = 0
-        max_versuche = 500 #Eingabe einer Anzahl an maximalen Versuchen, damit die anschliessende while-Schleife, sofern keine Route gefunden wird, unendlich durchläuft.
+        max_versuche = 500 #Eingabe einer Anzahl an maximalen Versuchen, damit die anschliessende while-Schleife, sofern keine Route gefunden wird, nicht unendlich durchläuft.
         route_ok = False
         while anzahl_versuche < max_versuche and not route_ok:
             zwischenpunkt1 = random.choice(knotenpunkte) #Um zu verhindern, dass der Hin- und Rückweg identisch sind, werden zwei zufällige Knoten aus den zur Verfügung stehenden Knoten gewählt.
@@ -121,7 +121,7 @@ def route_erstellen(lat, lon, distancem):
 
 
 
-#Durch die Funktion gpx_erstellen wird die unter der Funktion route_erstellen erstellten Route in ein GPX umgewandelt. 
+#Durch die Funktion gpx_erstellen wird die unter der Funktion route_erstellen erstellte Route in ein GPX umgewandelt. 
 def gpx_erstellen(routenkoordinaten):
     gpx = gpxpy.gpx.GPX() #Erstellt ein neues GPX-File
     gpx.name = 'Ihre Route'
@@ -158,7 +158,7 @@ lon = None
 
 
 #In col1 kann der Startpunkt sowie die gewünschte Distanz eingegeben werden.
-#Die If-Bedingung in Zeile 172 stellt sicher, dass alle Adressfelder korrekt ausgefüllt wurden und erstellt basierend darauf, die
+#Die If-Statement in Zeile 172 stellt sicher, dass alle Adressfelder korrekt ausgefüllt wurden und erstellt basierend darauf, die
 #Adresse. Die Adresse ist anschliessend die Grundlage für die Erstellung der Koordinaten des eingegebene Startpunkts.
 #Sollte die eingebene Adresse fehlerhaft sein, wird die Fehlermeldung "Bitte geben Sie eine gültige Adresse ein" ausgelöst. 
 #Sollte noch gar keine Adresse eingegeben sein, wird die Fehlermeldung "Bitte geben Sie Ihren Startpunkt ein" ausgelöst.
@@ -183,7 +183,7 @@ with col1:
     #Eingabefeld für Distanz:
     st.header ('Ihre Distanz')
     distancekm= st.slider ('Gewünschte Distanz:',0,42, format= "%d km")
-    distancem= distancekm*1000 #Umrechnung der Distanz in Meter. Notwendig, da die Abstände zwischen einzelnen Knotenpunkte in Meter angegeben sind.
+    distancem= distancekm*1000 #Umrechnung der Distanz in Meter. Notwendig, da die Abstände zwischen einzelnen Knotenpunkten in Meter angegeben sind.
     if distancekm==0:
         st.error('Wählen Sie Ihre gewünschte Distanz')
 
@@ -202,7 +202,7 @@ with col1:
 
     # Wetter anzeigen
     if st.session_state['wetterinformationen']:
-        wetter_abfrage(*st.session_state['wetterinformationen']) #Die in session_state['wetterinformationen'] gespeicherten Koordinaten, sind als Tuple vorhanden. 
+        wetter_abfrage(*st.session_state['wetterinformationen']) #Die in session_state['wetterinformationen'] gespeicherten Koordinaten, liegen als Tuple vor.
                                                                  #Damit die Funktion wetter_abfrage jedoch das Wetter vom eingegebenen Standort findet, 
                                                                  #müssen die Längen- und Breitengrade als einzelnes Argument eingegeben werden. Und dies wird durch
                                                                  #den * vor st.session_state['wetterinformationen'] sichergestellt.
